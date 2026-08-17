@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import type { Profile, TaskWeight } from '../../types'
-import { WEIGHT_LABELS } from '../../types'
 import { AssigneePicker } from './AssigneePicker'
+import { WeightPicker } from './WeightPicker'
 
 export function TaskForm({
   profiles,
@@ -12,23 +12,25 @@ export function TaskForm({
     title: string
     weight: TaskWeight
     assigneeIds: string[]
-    dueDate: string | null
+    dueDate: string
   }) => Promise<void>
 }) {
   const [title, setTitle] = useState('')
-  const [weight, setWeight] = useState<TaskWeight>(1)
+  const [weight, setWeight] = useState<TaskWeight | null>(null)
   const [assigneeIds, setAssigneeIds] = useState<string[]>([])
   const [dueDate, setDueDate] = useState('')
   const [busy, setBusy] = useState(false)
 
+  const canSubmit = !!title.trim() && weight !== null && assigneeIds.length > 0 && !!dueDate
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!title.trim()) return
+    if (!canSubmit || weight === null) return
     setBusy(true)
     try {
-      await onSubmit({ title: title.trim(), weight, assigneeIds, dueDate: dueDate || null })
+      await onSubmit({ title: title.trim(), weight, assigneeIds, dueDate })
       setTitle('')
-      setWeight(1)
+      setWeight(null)
       setAssigneeIds([])
       setDueDate('')
     } finally {
@@ -44,17 +46,7 @@ export function TaskForm({
         placeholder="Add a task…"
         className="min-w-[180px] flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-accent"
       />
-      <select
-        value={weight}
-        onChange={(e) => setWeight(Number(e.target.value) as TaskWeight)}
-        className="rounded-md border border-slate-300 px-2 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-accent"
-      >
-        {([1, 2, 3] as TaskWeight[]).map((w) => (
-          <option key={w} value={w}>
-            {WEIGHT_LABELS[w]}
-          </option>
-        ))}
-      </select>
+      <WeightPicker value={weight} onChange={setWeight} />
       <AssigneePicker
         profiles={profiles}
         selectedIds={assigneeIds}
@@ -66,12 +58,14 @@ export function TaskForm({
         type="date"
         value={dueDate}
         onChange={(e) => setDueDate(e.target.value)}
-        title="Deadline (optional)"
+        title="Deadline"
+        required
         className="rounded-md border border-slate-300 px-2 py-1.5 text-sm text-slate-600 focus-visible:ring-2 focus-visible:ring-accent"
       />
       <button
         type="submit"
-        disabled={busy || !title.trim()}
+        disabled={busy || !canSubmit}
+        title={canSubmit ? undefined : 'Set a deadline, a size, and at least one assignee'}
         className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
       >
         Add task
