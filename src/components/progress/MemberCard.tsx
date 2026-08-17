@@ -1,0 +1,46 @@
+import type { Profile } from '../../types'
+import { Avatar } from '../layout/Avatar'
+import { Heatmap } from './Heatmap'
+import { activeDayRate, currentStreak, totalPoints } from '../../lib/progress'
+
+export function MemberCard({
+  profile,
+  dates,
+  pointsByDate,
+  today,
+}: {
+  profile: Profile
+  dates: string[]
+  pointsByDate: Map<string, number>
+  today: string
+}) {
+  const total = totalPoints(pointsByDate, dates)
+  const rate = activeDayRate(pointsByDate, dates, today)
+  const streak = currentStreak(pointsByDate, dates, today)
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Avatar profile={profile} size="md" />
+          <span className="text-sm font-semibold text-slate-800">{profile.name}</span>
+        </div>
+        <div className="flex gap-4 text-right text-xs text-slate-500">
+          <div>
+            <div className="text-sm font-semibold text-slate-800">{total}</div>
+            <div>points</div>
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-slate-800">{Math.round(rate * 100)}%</div>
+            <div>active days</div>
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-slate-800">{streak}</div>
+            <div>day streak</div>
+          </div>
+        </div>
+      </div>
+      <Heatmap dates={dates} pointsByDate={pointsByDate} today={today} cellSize={10} />
+    </div>
+  )
+}

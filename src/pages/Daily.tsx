@@ -1,0 +1,110 @@
+import { useState } from 'react'
+import { useAuth } from '../hooks/useAuth'
+import { useObjectives } from '../hooks/useObjectives'
+import { useProfiles } from '../hooks/useProfiles'
+import { useTasks, todayISO } from '../hooks/useTasks'
+import { Avatar } from '../components/layout/Avatar'
+import { DailyTaskCard } from '../components/daily/DailyTaskCard'
+import type { Task } from '../types'
+
+export function Daily() {
+  const { profile } = useAuth()
+  const { tasks, completeTask } = useTasks()
+  const { profiles } = useProfiles()
+  const { objectives } = useObjectives()
+  const [view, setView] = useState<'team' | 'mine'>('mine')
+
+  const today = todayISO()
+  const daily = tasks.filter((t) => t.status === 'daily')
+  const dueToday = daily.filter((t) => t.scheduled_date === today)
+  const overdue = daily.filter((t) => t.scheduled_date && t.scheduled_date < today)
+
+  const visible = view === 'mine' ? [...overdue, ...dueToday].filter((t) => t.assignee_id === profile?.id) : [...overdue, ...dueToday]
+
+  const groups = new Map<string, Task[]>()
+  for (const task of visible) {
+    const key = task.assignee_id ?? 'unassigned'
+    groups.set(key, [...(groups.get(key) ?? []), task])
+  }
+
+  function objectiveFor(task: Task) {
+    return objectives.find((o) => o.id === task.objective_id)
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-slate-900">Today's list</h1>
+        <div className="flex rounded-md border border-slate-200 bg-white p-0.5 text-sm">
+          <button
+            onClick={() => setView('mine')}
+            className={`rounded px-3 py-1 ${view === 'mine' ? 'bg-accent text-white' : 'text-slate-600'}`}
+          >
+            Mine
+          </button>
+          <button
+            onClick={() => setView('team')}
+            className={`rounded px-3 py-1 ${view === 'team' ? 'bg-accent text-white' : 'text-slate-600'}`}
+          >
+            Team
+          </button>
+        </div>
+      </div>
+
+      {visible.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+          {view === 'mine'
+            ? "Nothing on your list today. Push a task to today's list from a Board bucket."
+            : "Nothing on the team's list today. Push tasks in from the Board."}
+        </div>
+      ) : view === 'mine' ? (
+        <ul className="space-y-2">
+          {visible.map((task) => (
+            <DailyTaskCard
+              key={task.id}
+              task={task}
+              objective={objectiveFor(task)}
+              onComplete={() => (profile ? completeTask(task.id, profile.id) : Promise.resolve())}
+            />
+          ))}
+        </ul>
+      ) : (
+        <div className="space-y-6">
+          {[...groups.entries()].map(([assigneeId, groupTasks]) => {
+            const groupProfile = profiles.find((p) => p.id === assigneeId)
+            return (
+              <div key={assigneeId}>
+                <div className="mb-2 flex items-center gap-2">
+                  <Avatar profile={groupProfile} size="sm" />
+                  <span className="text-sm font-medium text-slate-700">
+                    {groupProfile?.name ?? 'Unassigned'}
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    {groupTasks.length} task{groupTasks.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+                <ul className="space-y-2">
+                  {groupTasks.map((task) => (
+                    <DailyTaskCard
+                      key={task.id}
+                      task={task}
+                      objective={objectiveFor(task)}
+                      onComplete={() => (profile ? completeTask(task.id, profile.id) : Promise.resolve())}
+                    />
+                  ))}
+                </ul>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {overdue.length > 0 && (
+        <p className="text-xs text-slate-400">
+          {overdue.length} task{overdue.length === 1 ? '' : 's'} carried over from a previous day are
+          included above.
+        </p>
+      )}
+    </div>
+  )
+}

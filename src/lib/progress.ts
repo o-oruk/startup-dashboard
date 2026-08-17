@@ -1,0 +1,104 @@
+import type { Task } from '../types'
+
+// Fixed sprint window: today the app was built through the pitch competition.
+export const SPRINT_START = '2026-08-17'
+export const SPRINT_END = '2026-10-15'
+
+export type PointLevel = 'future' | 'red' | 'orange' | 'yellow' | 'green'
+
+export function todayISO() {
+  return new Date().toLocaleDateString('en-CA')
+}
+
+export function dateRange(start: string, end: string): string[] {
+  const dates: string[] = []
+  const cursor = new Date(start + 'T00:00:00')
+  const last = new Date(end + 'T00:00:00')
+  while (cursor <= last) {
+    dates.push(cursor.toLocaleDateString('en-CA'))
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  return dates
+}
+
+export function levelForPoints(points: number, date: string, today: string): PointLevel {
+  if (date > today) return 'future'
+  if (points <= 0) return 'red'
+  if (points <= 2) return 'orange'
+  if (points <= 4) return 'yellow'
+  return 'green'
+}
+
+export const LEVEL_COLOR: Record<PointLevel, string> = {
+  future: '#e5e7eb',
+  red: '#ef4444',
+  orange: '#f97316',
+  yellow: '#eab308',
+  green: '#22c55e',
+}
+
+export const LEVEL_LABEL: Record<PointLevel, string> = {
+  future: 'Upcoming',
+  red: 'No execution (0 pts)',
+  orange: 'Light day (1-2 pts)',
+  yellow: 'Solid day (3-4 pts)',
+  green: 'Strong day (5+ pts)',
+}
+
+/** Team points for each date in range: sum of weight for tasks completed that day. */
+export function teamPointsByDate(tasks: Task[]): Map<string, number> {
+  const map = new Map<string, number>()
+  for (const task of tasks) {
+    if (task.status !== 'done' || !task.completed_date) continue
+    map.set(task.completed_date, (map.get(task.completed_date) ?? 0) + task.weight)
+  }
+  return map
+}
+
+/** Points for one member for each date in range. */
+export function memberPointsByDate(tasks: Task[], memberId: string): Map<string, number> {
+  const map = new Map<string, number>()
+  for (const task of tasks) {
+    if (task.status !== 'done' || !task.completed_date || task.completed_by !== memberId) continue
+    map.set(task.completed_date, (map.get(task.completed_date) ?? 0) + task.weight)
+  }
+  return map
+}
+
+export function totalPoints(pointsByDate: Map<string, number>, dates: string[]): number {
+  return dates.reduce((sum, d) => sum + (pointsByDate.get(d) ?? 0), 0)
+}
+
+export function activeDayRate(pointsByDate: Map<string, number>, dates: string[], today: string): number {
+  const pastDates = dates.filter((d) => d <= today)
+  if (pastDates.length === 0) return 0
+  const active = pastDates.filter((d) => (pointsByDate.get(d) ?? 0) > 0).length
+  return active / pastDates.length
+}
+
+export function currentStreak(pointsByDate: Map<string, number>, dates: string[], today: string): number {
+  const past = dates.filter((d) => d <= today).sort().reverse()
+  if (past.length === 0) return 0
+  let start = 0
+  if (past[0] === today && (pointsByDate.get(today) ?? 0) === 0) start = 1
+  let streak = 0
+  for (let i = start; i < past.length; i++) {
+    if ((pointsByDate.get(past[i]) ?? 0) > 0) streak++
+    else break
+  }
+  return streak
+}
+
+/** Group dates into weeks (Sun-Sat columns) for a GitHub-style grid, padded to full weeks. */
+export function toWeeks(dates: string[]): (string | null)[][] {
+  if (dates.length === 0) return []
+  const first = new Date(dates[0] + 'T00:00:00')
+  const leadingBlanks = first.getDay() // 0 = Sunday
+  const padded: (string | null)[] = [...Array(leadingBlanks).fill(null), ...dates]
+  while (padded.length % 7 !== 0) padded.push(null)
+  const weeks: (string | null)[][] = []
+  for (let i = 0; i < padded.length; i += 7) {
+    weeks.push(padded.slice(i, i + 7))
+  }
+  return weeks
+}
