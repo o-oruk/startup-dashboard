@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import type { Profile, Task } from '../../types'
 import { AssigneePicker } from './AssigneePicker'
+import { DueBadge } from './DueBadge'
 import { WeightBadge } from './WeightBadge'
 import { todayISO } from '../../hooks/useTasks'
-import { dueCountdown, isUrgentDue } from '../../lib/dueDate'
+import { isUrgentDue } from '../../lib/dueDate'
 
 const STATUS_LABEL: Record<Task['status'], string> = {
   backlog: 'Backlog',
@@ -87,26 +88,10 @@ export function TaskRow({
               isUrgent ? 'border-red-300 text-red-600' : 'border-slate-300 text-slate-500'
             }`}
           />
-          {task.due_date && (
-            <span
-              className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                isUrgent ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-700'
-              }`}
-            >
-              {dueCountdown(task.due_date, today)}
-            </span>
-          )}
+          {task.due_date && <DueBadge dueDate={task.due_date} today={today} isUrgent={isUrgent} />}
         </div>
       ) : (
-        task.due_date && (
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-              isUrgent ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-700'
-            }`}
-          >
-            {dueCountdown(task.due_date, today)}
-          </span>
-        )
+        task.due_date && <DueBadge dueDate={task.due_date} today={today} isUrgent={isUrgent} />
       )}
 
       <AssigneePicker profiles={profiles} selectedIds={task.assignee_ids} onToggle={onToggleAssignee} />
@@ -128,7 +113,7 @@ export function TaskRow({
           onClick={() => {
             if (confirm(`Delete "${task.title}"? This can't be undone.`)) void onDelete()
           }}
-          className="rounded-md px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-50 hover:text-red-700"
+          className="rounded-md px-2 py-1 text-xs text-slate-600 hover:bg-red-50 hover:text-red-700"
         >
           Delete
         </button>
