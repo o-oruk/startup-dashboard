@@ -7,8 +7,7 @@ export function PointsExplainer() {
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <p className="text-sm text-slate-600">
         Every completed task is worth its weight (Small = 1, Medium = 2, Large = 3). A day's points
-        are the sum of weights for tasks completed that day. Colors show how the day went — no
-        other metric is tracked.
+        are the sum of weights for tasks completed that day. Colors show how the day went.
       </p>
       <div className="mt-3 flex flex-wrap gap-4">
         {LEVELS.map((level) => (

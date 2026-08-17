@@ -9,10 +9,9 @@ import { TaskRow } from '../components/objectives/TaskRow'
 
 export function Board() {
   const { profile } = useAuth()
-  const { objectives, addObjective, deleteObjective } = useObjectives()
+  const { objectives, addObjective, renameObjective, deleteObjective } = useObjectives()
   const { profiles } = useProfiles()
-  const { tasks, addTask, updateTask, deleteTask, pushToDaily, completeTask, reopenTask } =
-    useTasks()
+  const { tasks, addTask, updateTask, toggleAssignee, deleteTask, pushToDaily, reopenTask } = useTasks()
   const [activeId, setActiveId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -25,10 +24,29 @@ export function Board() {
   const activeTasks = tasks
     .filter((t) => t.objective_id === activeId)
     .sort((a, b) => {
-      const order = { backlog: 0, daily: 1, done: 2 }
-      if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status]
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      const aDone = a.status === 'done'
+      const bDone = b.status === 'done'
+      if (aDone !== bDone) return aDone ? 1 : -1
+
+      if (!aDone) {
+        // Pending tasks: earliest deadline first, undated tasks fall to the end of this group.
+        if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date)
+        if (a.due_date) return -1
+        if (b.due_date) return 1
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      }
+
+      // Completed tasks: most recently completed first.
+      const aCompleted = a.completed_date ?? a.created_at
+      const bCompleted = b.completed_date ?? b.created_at
+      return new Date(bCompleted).getTime() - new Date(aCompleted).getTime()
     })
+
+  const pendingCounts: Record<string, number> = {}
+  for (const task of tasks) {
+    if (task.status === 'done') continue
+    pendingCounts[task.objective_id] = (pendingCounts[task.objective_id] ?? 0) + 1
+  }
 
   async function handleDeleteObjective(id: string) {
     const count = tasks.filter((t) => t.objective_id === id).length
@@ -40,17 +58,24 @@ export function Board() {
     if (confirm(message)) await deleteObjective(id)
   }
 
+  const isAdmin = profile?.role === 'admin'
+
   if (objectives.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-slate-300 p-10 text-center">
-        <p className="text-slate-600">No objectives yet. Add your first one to get started.</p>
+        <p className="text-slate-600">
+          {isAdmin ? 'No objectives yet. Add your first one to get started.' : 'No objectives yet.'}
+        </p>
         <div className="mt-4 flex justify-center">
           <ObjectiveTabs
             objectives={[]}
             activeId={null}
+            pendingCounts={pendingCounts}
             onSelect={() => {}}
             onAdd={addObjective}
+            onRename={renameObjective}
             onDelete={handleDeleteObjective}
+            isAdmin={isAdmin}
           />
         </div>
       </div>
@@ -62,21 +87,25 @@ export function Board() {
       <ObjectiveTabs
         objectives={objectives}
         activeId={activeId}
+        pendingCounts={pendingCounts}
         onSelect={setActiveId}
         onAdd={addObjective}
+        onRename={renameObjective}
         onDelete={handleDeleteObjective}
+        isAdmin={isAdmin}
       />
 
       {profile && (
         <TaskForm
           profiles={profiles}
-          onSubmit={async ({ title, weight, assigneeId }) => {
+          onSubmit={async ({ title, weight, assigneeIds, dueDate }) => {
             if (!activeId) return
             await addTask({
               objectiveId: activeId,
               title,
               weight,
-              assigneeId,
+              assigneeIds,
+              dueDate,
               createdBy: profile.id,
             })
           }}
@@ -95,9 +124,9 @@ export function Board() {
               task={task}
               profiles={profiles}
               onUpdate={(fields) => updateTask(task.id, fields)}
+              onToggleAssignee={(profileId, assign) => void toggleAssignee(task.id, profileId, assign)}
               onDelete={() => deleteTask(task.id)}
-              onPushToDaily={() => pushToDaily(task.id, task.assignee_id)}
-              onComplete={() => (profile ? completeTask(task.id, profile.id) : Promise.resolve())}
+              onPushToDaily={() => pushToDaily(task.id)}
               onReopen={() => reopenTask(task)}
             />
           ))}

@@ -23,10 +23,17 @@ export function useImportantDates() {
     }
   }, [])
 
-  async function addDate(input: { title: string; date: string; note: string | null; createdBy: string }) {
+  async function addDate(input: {
+    title: string
+    date: string
+    type: ImportantDate['type']
+    note: string | null
+    createdBy: string
+  }) {
     const { error } = await supabase.from('important_dates').insert({
       title: input.title,
       date: input.date,
+      type: input.type,
       note: input.note,
       created_by: input.createdBy,
     })
@@ -36,7 +43,7 @@ export function useImportantDates() {
 
   async function updateDate(
     id: string,
-    fields: Partial<Pick<ImportantDate, 'title' | 'date' | 'note'>>,
+    fields: Partial<Pick<ImportantDate, 'title' | 'date' | 'type' | 'note'>>,
   ) {
     const { error } = await supabase.from('important_dates').update(fields).eq('id', id)
     if (error) throw error

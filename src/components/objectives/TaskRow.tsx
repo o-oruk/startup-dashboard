@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import type { Profile, Task } from '../../types'
-import { Avatar } from '../layout/Avatar'
-import { AssigneeSelect } from './AssigneeSelect'
+import { AssigneePicker } from './AssigneePicker'
 import { WeightBadge } from './WeightBadge'
+import { todayISO } from '../../hooks/useTasks'
+import { dueCountdown, isUrgentDue } from '../../lib/dueDate'
 
 const STATUS_LABEL: Record<Task['status'], string> = {
   backlog: 'Backlog',
@@ -14,23 +15,24 @@ export function TaskRow({
   task,
   profiles,
   onUpdate,
+  onToggleAssignee,
   onDelete,
   onPushToDaily,
-  onComplete,
   onReopen,
 }: {
   task: Task
   profiles: Profile[]
-  onUpdate: (fields: Partial<Pick<Task, 'title' | 'weight' | 'assignee_id'>>) => Promise<void>
+  onUpdate: (fields: Partial<Pick<Task, 'title' | 'weight' | 'due_date'>>) => Promise<void>
+  onToggleAssignee: (profileId: string, assign: boolean) => void
   onDelete: () => Promise<void>
   onPushToDaily: () => Promise<void>
-  onComplete: () => Promise<void>
   onReopen: () => Promise<void>
 }) {
   const [editing, setEditing] = useState(false)
   const [title, setTitle] = useState(task.title)
-  const assignee = profiles.find((p) => p.id === task.assignee_id)
   const completedBy = profiles.find((p) => p.id === task.completed_by)
+  const today = todayISO()
+  const isUrgent = isUrgentDue(task.due_date, task.status === 'done', today)
 
   async function saveTitle() {
     setEditing(false)
@@ -41,14 +43,6 @@ export function TaskRow({
 
   return (
     <li className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
-      <input
-        type="checkbox"
-        checked={task.status === 'done'}
-        onChange={() => (task.status === 'done' ? onReopen() : onComplete())}
-        className="h-4 w-4 shrink-0 rounded border-slate-300 text-accent focus-visible:ring-2 focus-visible:ring-accent"
-        aria-label={task.status === 'done' ? 'Mark not done' : 'Mark done'}
-      />
-
       <div className="min-w-[160px] flex-1">
         {editing ? (
           <input
@@ -67,9 +61,15 @@ export function TaskRow({
             {task.title}
           </button>
         )}
-        {task.status === 'done' && completedBy && (
+        {task.status === 'done' && (
           <p className="mt-0.5 text-xs text-slate-400">
-            Completed by {completedBy.name} on {task.completed_date}
+            {completedBy && `Completed by ${completedBy.name} on ${task.completed_date}`}
+            <button
+              onClick={() => void onReopen()}
+              className="ml-2 font-medium text-slate-400 underline hover:text-accent"
+            >
+              Undo
+            </button>
           </p>
         )}
       </div>
@@ -77,14 +77,39 @@ export function TaskRow({
       <WeightBadge weight={task.weight} />
 
       {task.status === 'backlog' ? (
-        <AssigneeSelect
-          profiles={profiles}
-          value={task.assignee_id}
-          onChange={(id) => onUpdate({ assignee_id: id })}
-        />
+        <div className="flex items-center gap-1.5">
+          <input
+            type="date"
+            value={task.due_date ?? ''}
+            onChange={(e) => onUpdate({ due_date: e.target.value || null })}
+            title="Deadline"
+            className={`rounded-md border px-2 py-1 text-xs focus-visible:ring-2 focus-visible:ring-accent ${
+              isUrgent ? 'border-red-300 text-red-600' : 'border-slate-300 text-slate-500'
+            }`}
+          />
+          {task.due_date && (
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                isUrgent ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-700'
+              }`}
+            >
+              {dueCountdown(task.due_date, today)}
+            </span>
+          )}
+        </div>
       ) : (
-        <Avatar profile={assignee} size="sm" />
+        task.due_date && (
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+              isUrgent ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-700'
+            }`}
+          >
+            {dueCountdown(task.due_date, today)}
+          </span>
+        )
       )}
+
+      <AssigneePicker profiles={profiles} selectedIds={task.assignee_ids} onToggle={onToggleAssignee} />
 
       <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
         {STATUS_LABEL[task.status]}
@@ -103,7 +128,7 @@ export function TaskRow({
           onClick={() => {
             if (confirm(`Delete "${task.title}"? This can't be undone.`)) void onDelete()
           }}
-          className="rounded-md px-2 py-1 text-xs text-slate-400 hover:bg-red-50 hover:text-red-600"
+          className="rounded-md px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-50 hover:text-red-700"
         >
           Delete
         </button>

@@ -6,6 +6,8 @@ function todayISO() {
   return new Date().toLocaleDateString('en-CA') // YYYY-MM-DD in local time
 }
 
+type TaskRow = Omit<Task, 'assignee_ids'> & { task_assignees: { profile_id: string }[] }
+
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
@@ -13,9 +15,15 @@ export function useTasks() {
   async function load() {
     const { data } = await supabase
       .from('tasks')
-      .select('*')
+      .select('*, task_assignees(profile_id)')
       .order('created_at', { ascending: false })
-    setTasks(data ?? [])
+    const rows = (data ?? []) as TaskRow[]
+    setTasks(
+      rows.map(({ task_assignees, ...task }) => ({
+        ...task,
+        assignee_ids: task_assignees.map((a) => a.profile_id),
+      })),
+    )
     setLoading(false)
   }
 
@@ -24,6 +32,7 @@ export function useTasks() {
     const channel = supabase
       .channel('tasks-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'task_assignees' }, load)
       .subscribe()
     return () => {
       supabase.removeChannel(channel)
@@ -34,26 +43,49 @@ export function useTasks() {
     objectiveId: string
     title: string
     weight: TaskWeight
-    assigneeId: string | null
+    assigneeIds: string[]
+    dueDate: string | null
     createdBy: string
   }) {
-    const { error } = await supabase.from('tasks').insert({
-      objective_id: input.objectiveId,
-      title: input.title,
-      weight: input.weight,
-      assignee_id: input.assigneeId,
-      created_by: input.createdBy,
-    })
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert({
+        objective_id: input.objectiveId,
+        title: input.title,
+        weight: input.weight,
+        due_date: input.dueDate,
+        created_by: input.createdBy,
+      })
+      .select('id')
+      .single()
+    if (error) throw error
+    if (input.assigneeIds.length > 0) {
+      const { error: assigneeError } = await supabase
+        .from('task_assignees')
+        .insert(input.assigneeIds.map((profileId) => ({ task_id: data.id, profile_id: profileId })))
+      if (assigneeError) throw assigneeError
+    }
+    await load()
+  }
+
+  async function updateTask(id: string, fields: Partial<Pick<Task, 'title' | 'weight' | 'due_date'>>) {
+    const { error } = await supabase.from('tasks').update(fields).eq('id', id)
     if (error) throw error
     await load()
   }
 
-  async function updateTask(
-    id: string,
-    fields: Partial<Pick<Task, 'title' | 'weight' | 'assignee_id'>>,
-  ) {
-    const { error } = await supabase.from('tasks').update(fields).eq('id', id)
-    if (error) throw error
+  async function toggleAssignee(taskId: string, profileId: string, assign: boolean) {
+    if (assign) {
+      const { error } = await supabase.from('task_assignees').insert({ task_id: taskId, profile_id: profileId })
+      if (error) throw error
+    } else {
+      const { error } = await supabase
+        .from('task_assignees')
+        .delete()
+        .eq('task_id', taskId)
+        .eq('profile_id', profileId)
+      if (error) throw error
+    }
     await load()
   }
 
@@ -63,10 +95,10 @@ export function useTasks() {
     await load()
   }
 
-  async function pushToDaily(id: string, assigneeId: string | null) {
+  async function pushToDaily(id: string) {
     const { error } = await supabase
       .from('tasks')
-      .update({ status: 'daily', scheduled_date: todayISO(), assignee_id: assigneeId })
+      .update({ status: 'daily', scheduled_date: todayISO() })
       .eq('id', id)
     if (error) throw error
     await load()
@@ -108,6 +140,7 @@ export function useTasks() {
     loading,
     addTask,
     updateTask,
+    toggleAssignee,
     deleteTask,
     pushToDaily,
     returnToBacklog,

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { nextDistinctHue } from '../lib/color'
 import type { Objective } from '../types'
 
 export function useObjectives() {
@@ -25,7 +26,14 @@ export function useObjectives() {
 
   async function addObjective(title: string) {
     const position = objectives.length
-    const { error } = await supabase.from('objectives').insert({ title, position })
+    const hue = nextDistinctHue(objectives.map((o) => o.hue))
+    const { error } = await supabase.from('objectives').insert({ title, position, hue })
+    if (error) throw error
+    await load()
+  }
+
+  async function renameObjective(id: string, title: string) {
+    const { error } = await supabase.from('objectives').update({ title }).eq('id', id)
     if (error) throw error
     await load()
   }
@@ -36,5 +44,5 @@ export function useObjectives() {
     await load()
   }
 
-  return { objectives, loading, addObjective, deleteObjective, refresh: load }
+  return { objectives, loading, addObjective, renameObjective, deleteObjective, refresh: load }
 }

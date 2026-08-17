@@ -1,26 +1,39 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useProfiles } from '../../hooks/useProfiles'
 import { Avatar } from '../layout/Avatar'
-import { PROFILE_PRESETS } from '../../types'
+import { PROFILE_COLORS } from '../../types'
+
+function initialsFromName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return ''
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
 
 export function ClaimProfile() {
   const { session, refreshProfile } = useAuth()
   const { profiles, loading: profilesLoading } = useProfiles()
   const [name, setName] = useState('')
   const [initials, setInitials] = useState('')
-  const [color, setColor] = useState<string>(PROFILE_PRESETS[0].color)
+  const [color, setColor] = useState<string>(PROFILE_COLORS[0])
+  const [isAdmin, setIsAdmin] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const takenNames = new Set(profiles.filter((p) => p.claimed).map((p) => p.name))
+  // Pre-fill from what was typed on the signup form, so no one has to retype their name here.
+  useEffect(() => {
+    const username = (session?.user.user_metadata?.username as string | undefined)?.trim()
+    if (username) {
+      setName(username)
+      setInitials(initialsFromName(username))
+    }
+  }, [session])
 
-  function pickPreset(preset: (typeof PROFILE_PRESETS)[number]) {
-    setName(preset.name)
-    setInitials(preset.initials)
-    setColor(preset.color)
-  }
+  const takenColors = new Set(profiles.filter((p) => p.claimed).map((p) => p.color))
+  const currentAdmin = profiles.find((p) => p.claimed && p.role === 'admin')
+  const adminTaken = !!currentAdmin
 
   async function handleSave() {
     if (!session) return
@@ -35,14 +48,13 @@ export function ClaimProfile() {
     }
     setBusy(true)
     try {
-      const role = name.trim() === 'Founder' ? 'founder' : 'member'
       const { error } = await supabase
         .from('profiles')
         .update({
           name: name.trim(),
           initials: initials.trim().slice(0, 2).toUpperCase(),
           color,
-          role,
+          role: isAdmin && !adminTaken ? 'admin' : 'member',
           claimed: true,
         })
         .eq('id', session.user.id)
@@ -58,36 +70,56 @@ export function ClaimProfile() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-xl font-semibold text-slate-900">Welcome — who are you?</h1>
+        <h1 className="text-xl font-semibold text-slate-900">Welcome, {name || 'there'} 👋</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Pick your spot below, or customize your name, initials and color. This is how you'll show
-          up everywhere in the dashboard.
+          Pick a color below — each teammate gets a unique one, used everywhere you show up in the
+          dashboard.
         </p>
 
         {!profilesLoading && (
-          <div className="mt-5 grid grid-cols-2 gap-2">
-            {PROFILE_PRESETS.map((preset) => {
-              const taken = takenNames.has(preset.name)
+          <div className="mt-5 flex gap-2">
+            {PROFILE_COLORS.map((presetColor) => {
+              const taken = takenColors.has(presetColor)
+              const selected = color === presetColor
               return (
                 <button
-                  key={preset.name}
+                  key={presetColor}
                   type="button"
                   disabled={taken}
-                  onClick={() => pickPreset(preset)}
-                  className={`flex items-center gap-2 rounded-md border px-3 py-2 text-left text-sm transition-colors ${
+                  onClick={() => setColor(presetColor)}
+                  aria-label={taken ? 'Color taken' : 'Choose this color'}
+                  title={taken ? 'Already taken' : undefined}
+                  className={`h-9 w-9 rounded-full border-2 transition-colors ${
                     taken
-                      ? 'cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300'
-                      : name === preset.name
-                        ? 'border-accent bg-accent-light'
-                        : 'border-slate-200 hover:border-accent'
+                      ? 'cursor-not-allowed opacity-25'
+                      : selected
+                        ? 'border-slate-900'
+                        : 'border-transparent hover:border-slate-300'
                   }`}
-                >
-                  <Avatar profile={preset} size="sm" />
-                  <span>{taken ? `${preset.name} (taken)` : preset.name}</span>
-                </button>
+                  style={{ backgroundColor: presetColor }}
+                />
               )
             })}
           </div>
+        )}
+
+        {!profilesLoading && (
+          <label
+            className={`mt-4 flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${
+              adminTaken ? 'cursor-not-allowed border-slate-100 bg-slate-50 text-slate-400' : 'border-slate-200'
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={isAdmin && !adminTaken}
+              disabled={adminTaken}
+              onChange={(e) => setIsAdmin(e.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-accent focus-visible:ring-2 focus-visible:ring-accent"
+            />
+            {adminTaken
+              ? `Admin is already assigned to ${currentAdmin?.name}`
+              : "I'm the admin (can create/delete objectives)"}
+          </label>
         )}
 
         <div className="mt-5 space-y-3">

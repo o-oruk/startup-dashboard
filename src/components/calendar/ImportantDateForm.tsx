@@ -1,12 +1,18 @@
 import { useState, type FormEvent } from 'react'
+import { DATE_TYPE_COLOR, DATE_TYPE_LABEL, type DateType } from '../../types'
+
+const TYPES: DateType[] = ['event', 'meeting', 'deadline']
 
 export function ImportantDateForm({
+  defaultDate,
   onSubmit,
 }: {
-  onSubmit: (input: { title: string; date: string; note: string | null }) => Promise<void>
+  defaultDate: string
+  onSubmit: (input: { title: string; date: string; type: DateType; note: string | null }) => Promise<void>
 }) {
   const [title, setTitle] = useState('')
-  const [date, setDate] = useState('')
+  const [date, setDate] = useState(defaultDate)
+  const [type, setType] = useState<DateType>('event')
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -15,45 +21,83 @@ export function ImportantDateForm({
     if (!title.trim() || !date) return
     setBusy(true)
     try {
-      await onSubmit({ title: title.trim(), date, note: note.trim() || null })
-      setTitle('')
-      setDate('')
-      setNote('')
+      await onSubmit({ title: title.trim(), date, type, note: note.trim() || null })
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-slate-300 p-3"
-    >
-      <input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="What's the date for?"
-        className="min-w-[160px] flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-accent"
-      />
-      <input
-        type="date"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-        required
-        className="rounded-md border border-slate-300 px-2 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-accent"
-      />
-      <input
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        placeholder="Note (optional)"
-        className="min-w-[140px] flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-accent"
-      />
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div>
+        <label htmlFor="date-title" className="block text-sm font-medium text-slate-700">
+          Title
+        </label>
+        <input
+          id="date-title"
+          autoFocus
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="What's the date for?"
+          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="date-date" className="block text-sm font-medium text-slate-700">
+          Date
+        </label>
+        <input
+          id="date-date"
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          required
+          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent"
+        />
+      </div>
+
+      <div>
+        <span className="block text-sm font-medium text-slate-700">Type</span>
+        <div className="mt-1 flex gap-1">
+          {TYPES.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setType(t)}
+              className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+                type === t ? 'border-transparent text-white' : 'border-slate-200 text-slate-500 hover:border-slate-300'
+              }`}
+              style={type === t ? { backgroundColor: DATE_TYPE_COLOR[t] } : undefined}
+            >
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: type === t ? 'white' : DATE_TYPE_COLOR[t] }}
+              />
+              {DATE_TYPE_LABEL[t]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="date-note" className="block text-sm font-medium text-slate-700">
+          Note <span className="font-normal text-slate-400">(optional)</span>
+        </label>
+        <input
+          id="date-note"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent"
+        />
+      </div>
+
       <button
         type="submit"
         disabled={busy || !title.trim() || !date}
-        className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
+        className="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent/90 disabled:opacity-50"
       >
-        Add date
+        {busy ? 'Creating…' : 'Create entry'}
       </button>
     </form>
   )

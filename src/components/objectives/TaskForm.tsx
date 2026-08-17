@@ -1,18 +1,24 @@
 import { useState, type FormEvent } from 'react'
 import type { Profile, TaskWeight } from '../../types'
 import { WEIGHT_LABELS } from '../../types'
-import { AssigneeSelect } from './AssigneeSelect'
+import { AssigneePicker } from './AssigneePicker'
 
 export function TaskForm({
   profiles,
   onSubmit,
 }: {
   profiles: Profile[]
-  onSubmit: (input: { title: string; weight: TaskWeight; assigneeId: string | null }) => Promise<void>
+  onSubmit: (input: {
+    title: string
+    weight: TaskWeight
+    assigneeIds: string[]
+    dueDate: string | null
+  }) => Promise<void>
 }) {
   const [title, setTitle] = useState('')
   const [weight, setWeight] = useState<TaskWeight>(1)
-  const [assigneeId, setAssigneeId] = useState<string | null>(null)
+  const [assigneeIds, setAssigneeIds] = useState<string[]>([])
+  const [dueDate, setDueDate] = useState('')
   const [busy, setBusy] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
@@ -20,10 +26,11 @@ export function TaskForm({
     if (!title.trim()) return
     setBusy(true)
     try {
-      await onSubmit({ title: title.trim(), weight, assigneeId })
+      await onSubmit({ title: title.trim(), weight, assigneeIds, dueDate: dueDate || null })
       setTitle('')
       setWeight(1)
-      setAssigneeId(null)
+      setAssigneeIds([])
+      setDueDate('')
     } finally {
       setBusy(false)
     }
@@ -48,7 +55,20 @@ export function TaskForm({
           </option>
         ))}
       </select>
-      <AssigneeSelect profiles={profiles} value={assigneeId} onChange={setAssigneeId} />
+      <AssigneePicker
+        profiles={profiles}
+        selectedIds={assigneeIds}
+        onToggle={(profileId, assign) =>
+          setAssigneeIds((ids) => (assign ? [...ids, profileId] : ids.filter((id) => id !== profileId)))
+        }
+      />
+      <input
+        type="date"
+        value={dueDate}
+        onChange={(e) => setDueDate(e.target.value)}
+        title="Deadline (optional)"
+        className="rounded-md border border-slate-300 px-2 py-1.5 text-sm text-slate-600 focus-visible:ring-2 focus-visible:ring-accent"
+      />
       <button
         type="submit"
         disabled={busy || !title.trim()}

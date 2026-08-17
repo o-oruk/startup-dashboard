@@ -19,6 +19,7 @@ create table if not exists objectives (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   position int not null default 0,
+  hue int not null default 0,
   created_at timestamptz not null default now()
 );
 
@@ -27,23 +28,33 @@ create table if not exists tasks (
   objective_id uuid not null references objectives (id) on delete cascade,
   title text not null,
   weight int not null check (weight in (1, 2, 3)),
-  assignee_id uuid references profiles (id) on delete set null,
   status text not null default 'backlog' check (status in ('backlog', 'daily', 'done')),
   scheduled_date date,
+  due_date date,
   completed_by uuid references profiles (id) on delete set null,
   completed_date date,
   created_by uuid references profiles (id) on delete set null,
   created_at timestamptz not null default now()
 );
 
+-- A task can have zero or more assignees.
+create table if not exists task_assignees (
+  task_id uuid not null references tasks (id) on delete cascade,
+  profile_id uuid not null references profiles (id) on delete cascade,
+  primary key (task_id, profile_id)
+);
+
 create table if not exists important_dates (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   date date not null,
+  type text not null default 'event' check (type in ('meeting', 'deadline', 'event')),
   note text,
   created_by uuid references profiles (id) on delete set null,
   created_at timestamptz not null default now()
 );
+
+create unique index if not exists profiles_one_admin_only on profiles (role) where role = 'admin';
 
 create index if not exists tasks_objective_id_idx on tasks (objective_id);
 create index if not exists tasks_scheduled_date_idx on tasks (scheduled_date);
@@ -62,7 +73,8 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id) values (new.id)
+  insert into public.profiles (id, name)
+  values (new.id, coalesce(new.raw_user_meta_data->>'username', ''))
   on conflict (id) do nothing;
   return new;
 end;
@@ -83,6 +95,7 @@ create trigger on_auth_user_created
 alter table profiles enable row level security;
 alter table objectives enable row level security;
 alter table tasks enable row level security;
+alter table task_assignees enable row level security;
 alter table important_dates enable row level security;
 
 create policy "profiles are readable by any signed-in user"
@@ -96,14 +109,35 @@ create policy "a user can update only their own profile"
   using (auth.uid() = id)
   with check (auth.uid() = id);
 
-create policy "objectives full access for signed-in users"
-  on objectives for all
+create policy "objectives readable by signed-in users"
+  on objectives for select
+  to authenticated
+  using (true);
+
+create policy "only the admin can create objectives"
+  on objectives for insert
+  to authenticated
+  with check (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'));
+
+create policy "only the admin can delete objectives"
+  on objectives for delete
+  to authenticated
+  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'));
+
+create policy "only the admin can rename objectives"
+  on objectives for update
+  to authenticated
+  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'))
+  with check (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'));
+
+create policy "tasks full access for signed-in users"
+  on tasks for all
   to authenticated
   using (true)
   with check (true);
 
-create policy "tasks full access for signed-in users"
-  on tasks for all
+create policy "task_assignees full access for signed-in users"
+  on task_assignees for all
   to authenticated
   using (true)
   with check (true);
@@ -119,6 +153,7 @@ create policy "important_dates full access for signed-in users"
 -- ─────────────────────────────────────────────────────────────
 
 alter publication supabase_realtime add table tasks;
+alter publication supabase_realtime add table task_assignees;
 alter publication supabase_realtime add table objectives;
 alter publication supabase_realtime add table important_dates;
 
@@ -126,8 +161,8 @@ alter publication supabase_realtime add table important_dates;
 -- Seed the three starting objectives
 -- ─────────────────────────────────────────────────────────────
 
-insert into objectives (title, position) values
-  ('Conduct validation conversations', 0),
-  ('Improve the model & develop our system', 1),
-  ('Build our first real MVP', 2)
+insert into objectives (title, position, hue) values
+  ('Conduct validation conversations', 0, 250),
+  ('Improve the model & develop our system', 1, 10),
+  ('Build our first real MVP', 2, 130)
 on conflict do nothing;

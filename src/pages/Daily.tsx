@@ -9,7 +9,7 @@ import type { Task } from '../types'
 
 export function Daily() {
   const { profile } = useAuth()
-  const { tasks, completeTask } = useTasks()
+  const { tasks, completeTask, returnToBacklog } = useTasks()
   const { profiles } = useProfiles()
   const { objectives } = useObjectives()
   const [view, setView] = useState<'team' | 'mine'>('mine')
@@ -19,12 +19,17 @@ export function Daily() {
   const dueToday = daily.filter((t) => t.scheduled_date === today)
   const overdue = daily.filter((t) => t.scheduled_date && t.scheduled_date < today)
 
-  const visible = view === 'mine' ? [...overdue, ...dueToday].filter((t) => t.assignee_id === profile?.id) : [...overdue, ...dueToday]
+  const visible =
+    view === 'mine'
+      ? [...overdue, ...dueToday].filter((t) => !!profile && t.assignee_ids.includes(profile.id))
+      : [...overdue, ...dueToday]
 
   const groups = new Map<string, Task[]>()
   for (const task of visible) {
-    const key = task.assignee_id ?? 'unassigned'
-    groups.set(key, [...(groups.get(key) ?? []), task])
+    const keys = task.assignee_ids.length > 0 ? task.assignee_ids : ['unassigned']
+    for (const key of keys) {
+      groups.set(key, [...(groups.get(key) ?? []), task])
+    }
   }
 
   function objectiveFor(task: Task) {
@@ -33,7 +38,7 @@ export function Daily() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
         <h1 className="text-lg font-semibold text-slate-900">Today's list</h1>
         <div className="flex rounded-md border border-slate-200 bg-white p-0.5 text-sm">
           <button
@@ -54,8 +59,8 @@ export function Daily() {
       {visible.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
           {view === 'mine'
-            ? "Nothing on your list today. Push a task to today's list from a Board bucket."
-            : "Nothing on the team's list today. Push tasks in from the Board."}
+            ? "Nothing on your list today. Push a task to today's list from the Roadmap."
+            : "Nothing on the team's list today. Push tasks in from the Roadmap."}
         </div>
       ) : view === 'mine' ? (
         <ul className="space-y-2">
@@ -64,7 +69,9 @@ export function Daily() {
               key={task.id}
               task={task}
               objective={objectiveFor(task)}
+              today={today}
               onComplete={() => (profile ? completeTask(task.id, profile.id) : Promise.resolve())}
+              onReturnToBacklog={() => returnToBacklog(task.id)}
             />
           ))}
         </ul>
@@ -89,7 +96,9 @@ export function Daily() {
                       key={task.id}
                       task={task}
                       objective={objectiveFor(task)}
+                      today={today}
                       onComplete={() => (profile ? completeTask(task.id, profile.id) : Promise.resolve())}
+                      onReturnToBacklog={() => returnToBacklog(task.id)}
                     />
                   ))}
                 </ul>

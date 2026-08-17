@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { AuthScreen } from './components/auth/AuthScreen'
 import { ClaimProfile } from './components/auth/ClaimProfile'
+import { ResetPasswordScreen } from './components/auth/ResetPasswordScreen'
 import { AppShell } from './components/layout/AppShell'
 import { Board } from './pages/Board'
 import { Daily } from './pages/Daily'
@@ -9,7 +10,7 @@ import { Progress } from './pages/Progress'
 import { Calendar } from './pages/Calendar'
 
 function Gate() {
-  const { session, profile, loading } = useAuth()
+  const { session, profile, loading, isPasswordRecovery } = useAuth()
 
   if (loading) {
     return (
@@ -19,6 +20,7 @@ function Gate() {
     )
   }
 
+  if (isPasswordRecovery) return <ResetPasswordScreen />
   if (!session) return <AuthScreen />
   if (!profile?.claimed) return <ClaimProfile />
 

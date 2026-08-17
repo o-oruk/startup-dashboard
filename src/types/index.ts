@@ -15,6 +15,7 @@ export interface Objective {
   id: string
   title: string
   position: number
+  hue: number
   created_at: string
 }
 
@@ -23,22 +24,38 @@ export interface Task {
   objective_id: string
   title: string
   weight: TaskWeight
-  assignee_id: string | null
+  assignee_ids: string[]
   status: TaskStatus
   scheduled_date: string | null
+  due_date: string | null
   completed_by: string | null
   completed_date: string | null
   created_by: string | null
   created_at: string
 }
 
+export type DateType = 'meeting' | 'deadline' | 'event'
+
 export interface ImportantDate {
   id: string
   title: string
   date: string
+  type: DateType
   note: string | null
   created_by: string | null
   created_at: string
+}
+
+export const DATE_TYPE_COLOR: Record<DateType, string> = {
+  meeting: '#2563eb',
+  deadline: '#dc2626',
+  event: '#16a34a',
+}
+
+export const DATE_TYPE_LABEL: Record<DateType, string> = {
+  meeting: 'Meeting',
+  deadline: 'Deadline',
+  event: 'Event',
 }
 
 export const WEIGHT_LABELS: Record<TaskWeight, string> = {
@@ -47,9 +64,4 @@ export const WEIGHT_LABELS: Record<TaskWeight, string> = {
   3: 'Large',
 }
 
-export const PROFILE_PRESETS = [
-  { name: 'Founder', initials: 'F1', color: '#4f46e5' },
-  { name: 'Member 2', initials: 'M2', color: '#0d9488' },
-  { name: 'Member 3', initials: 'M3', color: '#d97706' },
-  { name: 'Member 4', initials: 'M4', color: '#e11d48' },
-] as const
+export const PROFILE_COLORS = ['#4f46e5', '#0d9488', '#d97706', '#e11d48'] as const
