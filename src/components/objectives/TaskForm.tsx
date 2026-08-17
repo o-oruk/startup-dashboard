@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { Profile, TaskWeight } from '../../types'
+import { DatePicker } from '../shared/DatePicker'
 import { AssigneePicker } from './AssigneePicker'
 import { WeightPicker } from './WeightPicker'
 
@@ -54,14 +55,7 @@ export function TaskForm({
           setAssigneeIds((ids) => (assign ? [...ids, profileId] : ids.filter((id) => id !== profileId)))
         }
       />
-      <input
-        type="date"
-        value={dueDate}
-        onChange={(e) => setDueDate(e.target.value)}
-        title="Deadline"
-        required
-        className="rounded-md border border-slate-300 px-2 py-1.5 text-sm text-slate-600 focus-visible:ring-2 focus-visible:ring-accent"
-      />
+      <DatePicker value={dueDate} onChange={setDueDate} placeholder="Deadline" />
       <button
         type="submit"
         disabled={busy || !canSubmit}

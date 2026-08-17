@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { AgendaEvent } from '../../lib/calendar'
 import { DATE_TYPE_COLOR, DATE_TYPE_LABEL, type DateType, type ImportantDate } from '../../types'
+import { DatePicker } from '../shared/DatePicker'
 import { AddDateModal } from './AddDateModal'
 
 const TYPES: DateType[] = ['event', 'meeting', 'deadline']
@@ -43,12 +44,7 @@ function EditDateRow({
           onChange={(e) => setTitle(e.target.value)}
           className="min-w-[120px] flex-1 rounded-md border border-slate-300 px-2 py-1 text-sm focus-visible:ring-2 focus-visible:ring-accent"
         />
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="rounded-md border border-slate-300 px-2 py-1 text-sm focus-visible:ring-2 focus-visible:ring-accent"
-        />
+        <DatePicker value={date} onChange={setDate} />
       </div>
       <div className="flex gap-1">
         {TYPES.map((t) => (

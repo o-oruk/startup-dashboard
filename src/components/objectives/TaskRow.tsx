@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import type { Profile, Task } from '../../types'
+import { DatePicker } from '../shared/DatePicker'
 import { AssigneePicker } from './AssigneePicker'
 import { DueBadge } from './DueBadge'
-import { WeightBadge } from './WeightBadge'
+import { WeightPicker } from './WeightPicker'
 import { todayISO } from '../../hooks/useTasks'
 import { isUrgentDue } from '../../lib/dueDate'
 
@@ -75,24 +76,17 @@ export function TaskRow({
         )}
       </div>
 
-      <WeightBadge weight={task.weight} />
+      <WeightPicker value={task.weight} onChange={(weight) => onUpdate({ weight })} />
 
-      {task.status === 'backlog' ? (
-        <div className="flex items-center gap-1.5">
-          <input
-            type="date"
-            value={task.due_date ?? ''}
-            onChange={(e) => onUpdate({ due_date: e.target.value || null })}
-            title="Deadline"
-            className={`rounded-md border px-2 py-1 text-xs focus-visible:ring-2 focus-visible:ring-accent ${
-              isUrgent ? 'border-red-300 text-red-600' : 'border-slate-300 text-slate-500'
-            }`}
-          />
-          {task.due_date && <DueBadge dueDate={task.due_date} today={today} isUrgent={isUrgent} />}
-        </div>
-      ) : (
-        task.due_date && <DueBadge dueDate={task.due_date} today={today} isUrgent={isUrgent} />
-      )}
+      <div className="flex items-center gap-1.5">
+        <DatePicker
+          value={task.due_date ?? ''}
+          onChange={(date) => onUpdate({ due_date: date || null })}
+          placeholder="Deadline"
+          clearable
+        />
+        {task.due_date && <DueBadge dueDate={task.due_date} today={today} isUrgent={isUrgent} />}
+      </div>
 
       <AssigneePicker profiles={profiles} selectedIds={task.assignee_ids} onToggle={onToggleAssignee} />
 

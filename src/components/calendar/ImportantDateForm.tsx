@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { DATE_TYPE_COLOR, DATE_TYPE_LABEL, type DateType } from '../../types'
+import { DatePicker } from '../shared/DatePicker'
 
 const TYPES: DateType[] = ['event', 'meeting', 'deadline']
 
@@ -44,17 +45,10 @@ export function ImportantDateForm({
       </div>
 
       <div>
-        <label htmlFor="date-date" className="block text-sm font-medium text-slate-700">
-          Date
-        </label>
-        <input
-          id="date-date"
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent"
-        />
+        <span className="block text-sm font-medium text-slate-700">Date</span>
+        <div className="mt-1">
+          <DatePicker value={date} onChange={setDate} placeholder="Pick a date" triggerClassName="w-full py-2" />
+        </div>
       </div>
 
       <div>
