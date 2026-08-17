@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useObjectives } from '../hooks/useObjectives'
+import { usePresence } from '../hooks/usePresence'
 import { useProfiles } from '../hooks/useProfiles'
 import { useTasks, todayISO } from '../hooks/useTasks'
 import { Avatar } from '../components/layout/Avatar'
@@ -12,6 +13,7 @@ export function Daily() {
   const { tasks, completeTask, returnToBacklog } = useTasks()
   const { profiles } = useProfiles()
   const { objectives } = useObjectives()
+  const presence = usePresence()
   const [view, setView] = useState<'team' | 'mine'>('mine')
 
   const today = todayISO()
@@ -82,7 +84,7 @@ export function Daily() {
             return (
               <div key={assigneeId}>
                 <div className="mb-2 flex items-center gap-2">
-                  <Avatar profile={groupProfile} size="sm" />
+                  <Avatar profile={groupProfile} size="sm" status={groupProfile ? presence[groupProfile.id] : undefined} />
                   <span className="text-sm font-medium text-slate-700">
                     {groupProfile?.name ?? 'Unassigned'}
                   </span>

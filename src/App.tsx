@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
+import { PresenceProvider } from './hooks/usePresence'
 import { AuthScreen } from './components/auth/AuthScreen'
 import { ClaimProfile } from './components/auth/ClaimProfile'
 import { ResetPasswordScreen } from './components/auth/ResetPasswordScreen'
@@ -39,7 +40,9 @@ function Gate() {
 export default function App() {
   return (
     <AuthProvider>
-      <Gate />
+      <PresenceProvider>
+        <Gate />
+      </PresenceProvider>
     </AuthProvider>
   )
 }

@@ -1,6 +1,8 @@
 import { NavLink } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useAuth } from '../../hooks/useAuth'
+import { usePresence } from '../../hooks/usePresence'
+import { useProfiles } from '../../hooks/useProfiles'
 import { Avatar } from './Avatar'
 import { Countdown } from './Countdown'
 import { Logo } from './Logo'
@@ -14,6 +16,9 @@ const NAV_ITEMS = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { profile, signOut } = useAuth()
+  const presence = usePresence()
+  const { profiles } = useProfiles()
+  const teammates = profiles.filter((p) => p.claimed && p.id !== profile?.id)
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -46,7 +51,17 @@ export function AppShell({ children }: { children: ReactNode }) {
               </nav>
             </div>
             <div className="flex items-center gap-3">
-              <Avatar profile={profile} size="sm" />
+              {teammates.length > 0 && (
+                <>
+                  <div className="flex -space-x-1.5">
+                    {teammates.map((p) => (
+                      <Avatar key={p.id} profile={p} size="sm" status={presence[p.id]} />
+                    ))}
+                  </div>
+                  <div className="h-5 w-px bg-slate-200" />
+                </>
+              )}
+              <Avatar profile={profile} size="sm" status={profile ? presence[profile.id] : undefined} />
               <span className="hidden text-sm text-slate-600 sm:inline">{profile?.name}</span>
               <button
                 onClick={signOut}

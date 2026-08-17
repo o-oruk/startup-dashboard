@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Profile } from '../../types'
+import { usePresence } from '../../hooks/usePresence'
 import { Avatar } from '../layout/Avatar'
 
 export function AssigneePicker({
@@ -13,6 +14,7 @@ export function AssigneePicker({
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const presence = usePresence()
 
   useEffect(() => {
     if (!open) return
@@ -63,7 +65,7 @@ export function AssigneePicker({
                     isSelected ? 'bg-accent-light' : ''
                   }`}
                 >
-                  <Avatar profile={p} size="sm" />
+                  <Avatar profile={p} size="sm" status={presence[p.id]} />
                   <span className="flex-1 truncate text-slate-700">{p.name}</span>
                   {isSelected && (
                     <svg viewBox="0 0 12 12" className="h-3.5 w-3.5 shrink-0 text-accent" fill="none">

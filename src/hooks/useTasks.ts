@@ -30,7 +30,7 @@ export function useTasks() {
   useEffect(() => {
     load()
     const channel = supabase
-      .channel('tasks-changes')
+      .channel(`tasks-changes-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, load)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'task_assignees' }, load)
       .subscribe()

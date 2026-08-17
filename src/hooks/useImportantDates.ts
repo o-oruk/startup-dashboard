@@ -15,7 +15,7 @@ export function useImportantDates() {
   useEffect(() => {
     load()
     const channel = supabase
-      .channel('important-dates-changes')
+      .channel(`important-dates-changes-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'important_dates' }, load)
       .subscribe()
     return () => {

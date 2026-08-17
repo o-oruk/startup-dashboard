@@ -16,7 +16,7 @@ export function useObjectives() {
   useEffect(() => {
     load()
     const channel = supabase
-      .channel('objectives-changes')
+      .channel(`objectives-changes-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'objectives' }, load)
       .subscribe()
     return () => {

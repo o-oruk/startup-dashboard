@@ -1,4 +1,5 @@
 import type { Profile } from '../../types'
+import type { PresenceStatus } from '../../hooks/usePresence'
 import { Avatar } from '../layout/Avatar'
 import { Heatmap } from './Heatmap'
 import { activeDayRate, currentStreak, totalPoints } from '../../lib/progress'
@@ -8,11 +9,13 @@ export function MemberCard({
   dates,
   pointsByDate,
   today,
+  presence,
 }: {
   profile: Profile
   dates: string[]
   pointsByDate: Map<string, number>
   today: string
+  presence?: PresenceStatus
 }) {
   const total = totalPoints(pointsByDate, dates)
   const rate = activeDayRate(pointsByDate, dates, today)
@@ -22,7 +25,7 @@ export function MemberCard({
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Avatar profile={profile} size="md" />
+          <Avatar profile={profile} size="md" status={presence} />
           <span className="text-sm font-semibold text-slate-800">{profile.name}</span>
         </div>
         <div className="flex gap-4 text-right text-xs text-slate-500">

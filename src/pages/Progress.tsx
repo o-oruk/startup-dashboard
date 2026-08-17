@@ -1,4 +1,5 @@
 import { useProfiles } from '../hooks/useProfiles'
+import { usePresence } from '../hooks/usePresence'
 import { useTasks } from '../hooks/useTasks'
 import { Heatmap } from '../components/progress/Heatmap'
 import { MemberCard } from '../components/progress/MemberCard'
@@ -16,6 +17,7 @@ import {
 export function Progress() {
   const { tasks } = useTasks()
   const { profiles } = useProfiles()
+  const presence = usePresence()
   const today = todayISO()
   const dates = dateRange(SPRINT_START, SPRINT_END)
   const teamPoints = teamPointsByDate(tasks)
@@ -54,6 +56,7 @@ export function Progress() {
                 dates={dates}
                 pointsByDate={memberPointsByDate(tasks, profile.id)}
                 today={today}
+                presence={presence[profile.id]}
               />
             ))}
           </div>
