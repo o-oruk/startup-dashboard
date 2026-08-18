@@ -32,7 +32,7 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
       setStatuses(next)
     }
 
-    let lastSent: PresenceStatus = 'online'
+    let lastSent: PresenceStatus | null = null
     function setStatus(next: PresenceStatus) {
       if (lastSent === next) return
       lastSent = next
