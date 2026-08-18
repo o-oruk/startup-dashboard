@@ -19,33 +19,30 @@ export function MemberModal({
   profile,
   status,
   canEdit,
-  onSaveName,
+  onSave,
   onClose,
 }: {
   profile: Profile
   status: PresenceStatus
   canEdit: boolean
-  onSaveName: (name: string) => Promise<void>
+  onSave: (fields: { name: string; initials: string }) => Promise<void>
   onClose: () => void
 }) {
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(profile.name)
+  const [initials, setInitials] = useState(profile.initials)
   const [busy, setBusy] = useState(false)
 
   async function handleSave() {
-    const trimmed = name.trim()
-    if (!trimmed) {
-      setName(profile.name)
-      setEditing(false)
-      return
-    }
-    if (trimmed === profile.name) {
+    const trimmedName = name.trim() || profile.name
+    const trimmedInitials = initials.trim().slice(0, 2).toUpperCase() || profile.initials
+    if (trimmedName === profile.name && trimmedInitials === profile.initials) {
       setEditing(false)
       return
     }
     setBusy(true)
     try {
-      await onSaveName(trimmed)
+      await onSave({ name: trimmedName, initials: trimmedInitials })
       setEditing(false)
     } finally {
       setBusy(false)
@@ -86,11 +83,14 @@ export function MemberModal({
         <div className="mt-5 space-y-3 border-t border-slate-100 pt-4">
           <div>
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Username</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                Username & initials
+              </p>
               {canEdit && !editing && (
                 <button
                   onClick={() => {
                     setName(profile.name)
+                    setInitials(profile.initials)
                     setEditing(true)
                   }}
                   className="text-xs font-medium text-accent hover:underline"
@@ -100,30 +100,45 @@ export function MemberModal({
               )}
             </div>
             {editing ? (
-              <div className="mt-1 flex items-center gap-1.5">
-                <input
-                  autoFocus
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-                  className="min-w-0 flex-1 rounded-md border border-slate-300 px-2 py-1 text-sm focus-visible:ring-2 focus-visible:ring-accent"
-                />
-                <button
-                  onClick={() => setEditing(false)}
-                  className="rounded-md px-2 py-1 text-xs text-slate-500 hover:bg-slate-100"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={busy}
-                  className="rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-white hover:bg-accent/90 disabled:opacity-50"
-                >
-                  Save
-                </button>
+              <div className="mt-1 space-y-2">
+                <div className="flex items-center gap-1.5">
+                  <input
+                    autoFocus
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+                    placeholder="Username"
+                    className="min-w-0 flex-1 rounded-md border border-slate-300 px-2 py-1 text-sm focus-visible:ring-2 focus-visible:ring-accent"
+                  />
+                  <input
+                    value={initials}
+                    onChange={(e) => setInitials(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+                    maxLength={2}
+                    placeholder="Initials"
+                    className="w-16 rounded-md border border-slate-300 px-2 py-1 text-center text-sm uppercase focus-visible:ring-2 focus-visible:ring-accent"
+                  />
+                </div>
+                <div className="flex justify-end gap-1.5">
+                  <button
+                    onClick={() => setEditing(false)}
+                    className="rounded-md px-2 py-1 text-xs text-slate-500 hover:bg-slate-100"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={busy}
+                    className="rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-white hover:bg-accent/90 disabled:opacity-50"
+                  >
+                    Save
+                  </button>
+                </div>
               </div>
             ) : (
-              <p className="mt-0.5 text-sm text-slate-800">{profile.name}</p>
+              <p className="mt-0.5 text-sm text-slate-800">
+                {profile.name} <span className="text-slate-400">· {profile.initials}</span>
+              </p>
             )}
           </div>
           <div>

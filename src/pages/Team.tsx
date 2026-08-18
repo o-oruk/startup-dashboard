@@ -13,7 +13,7 @@ const STATUS_TEXT: Record<PresenceStatus, string> = {
 
 export function Team() {
   const { profile: me } = useAuth()
-  const { profiles, loading, updateName } = useProfiles()
+  const { profiles, loading, updateProfile } = useProfiles()
   const presence = usePresence()
   const claimed = profiles.filter((p) => p.claimed)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -64,7 +64,7 @@ export function Team() {
           profile={selected}
           status={presence[selected.id] ?? 'offline'}
           canEdit={isAdmin || selected.id === me?.id}
-          onSaveName={(name) => updateName(selected.id, name)}
+          onSave={(fields) => updateProfile(selected.id, fields)}
           onClose={() => setSelectedId(null)}
         />
       )}
