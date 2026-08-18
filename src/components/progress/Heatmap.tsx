@@ -61,7 +61,7 @@ export function Heatmap({
                       backgroundColor: LEVEL_COLOR[level],
                     }}
                     className={`rounded-[3px] transition-transform ${
-                      clickable ? 'cursor-pointer hover:scale-125' : 'cursor-default'
+                      clickable ? 'cursor-pointer hover:scale-150' : 'cursor-default'
                     }`}
                   />
                 )
