@@ -64,6 +64,7 @@ export function Team() {
           profile={selected}
           status={presence[selected.id] ?? 'offline'}
           canEdit={isAdmin || selected.id === me?.id}
+          otherColors={claimed.filter((p) => p.id !== selected.id).map((p) => p.color)}
           onSave={(fields) => updateProfile(selected.id, fields)}
           onClose={() => setSelectedId(null)}
         />

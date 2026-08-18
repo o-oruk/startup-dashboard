@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Profile } from '../../types'
 import type { PresenceStatus } from '../../hooks/usePresence'
 import { Avatar } from '../layout/Avatar'
+import { ColorSwatchPicker } from '../shared/ColorSwatchPicker'
 
 const STATUS_TEXT: Record<PresenceStatus, string> = {
   online: 'Online now',
@@ -19,30 +20,33 @@ export function MemberModal({
   profile,
   status,
   canEdit,
+  otherColors,
   onSave,
   onClose,
 }: {
   profile: Profile
   status: PresenceStatus
   canEdit: boolean
-  onSave: (fields: { name: string; initials: string }) => Promise<void>
+  otherColors: string[]
+  onSave: (fields: { name: string; initials: string; color: string }) => Promise<void>
   onClose: () => void
 }) {
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(profile.name)
   const [initials, setInitials] = useState(profile.initials)
+  const [color, setColor] = useState(profile.color)
   const [busy, setBusy] = useState(false)
 
   async function handleSave() {
     const trimmedName = name.trim() || profile.name
     const trimmedInitials = initials.trim().slice(0, 2).toUpperCase() || profile.initials
-    if (trimmedName === profile.name && trimmedInitials === profile.initials) {
+    if (trimmedName === profile.name && trimmedInitials === profile.initials && color === profile.color) {
       setEditing(false)
       return
     }
     setBusy(true)
     try {
-      await onSave({ name: trimmedName, initials: trimmedInitials })
+      await onSave({ name: trimmedName, initials: trimmedInitials, color })
       setEditing(false)
     } finally {
       setBusy(false)
@@ -69,7 +73,7 @@ export function MemberModal({
         </div>
 
         <div className="flex flex-col items-center text-center">
-          <Avatar profile={profile} size="lg" />
+          <Avatar profile={editing ? { ...profile, color } : profile} size="lg" />
           <h3 className="mt-3 text-base font-semibold text-slate-900">{profile.name}</h3>
           <span className="mt-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
             {profile.role === 'admin' ? 'Admin' : 'Member'}
@@ -80,17 +84,16 @@ export function MemberModal({
           </span>
         </div>
 
-        <div className="mt-5 space-y-3 border-t border-slate-100 pt-4">
+        <div className="mt-5 space-y-4 border-t border-slate-100 pt-4">
           <div>
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                Username & initials
-              </p>
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Profile</p>
               {canEdit && !editing && (
                 <button
                   onClick={() => {
                     setName(profile.name)
                     setInitials(profile.initials)
+                    setColor(profile.color)
                     setEditing(true)
                   }}
                   className="text-xs font-medium text-accent hover:underline"
@@ -100,7 +103,7 @@ export function MemberModal({
               )}
             </div>
             {editing ? (
-              <div className="mt-1 space-y-2">
+              <div className="mt-1 space-y-3">
                 <div className="flex items-center gap-1.5">
                   <input
                     autoFocus
@@ -119,6 +122,7 @@ export function MemberModal({
                     className="w-16 rounded-md border border-slate-300 px-2 py-1 text-center text-sm uppercase focus-visible:ring-2 focus-visible:ring-accent"
                   />
                 </div>
+                <ColorSwatchPicker value={color} onChange={setColor} takenColors={otherColors} />
                 <div className="flex justify-end gap-1.5">
                   <button
                     onClick={() => setEditing(false)}

@@ -23,7 +23,7 @@ export function useProfiles() {
     }
   }, [])
 
-  async function updateProfile(id: string, fields: Partial<Pick<Profile, 'name' | 'initials'>>) {
+  async function updateProfile(id: string, fields: Partial<Pick<Profile, 'name' | 'initials' | 'color'>>) {
     const { error } = await supabase.from('profiles').update(fields).eq('id', id)
     if (error) throw error
     await load()

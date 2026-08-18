@@ -64,5 +64,3 @@ export const WEIGHT_LABELS: Record<TaskWeight, string> = {
   2: 'Medium',
   3: 'Large',
 }
-
-export const PROFILE_COLORS = ['#4f46e5', '#0d9488', '#d97706', '#e11d48'] as const

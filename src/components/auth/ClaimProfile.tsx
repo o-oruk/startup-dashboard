@@ -3,7 +3,8 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useProfiles } from '../../hooks/useProfiles'
 import { Avatar } from '../layout/Avatar'
-import { PROFILE_COLORS } from '../../types'
+import { ColorSwatchPicker } from '../shared/ColorSwatchPicker'
+import { MEMBER_PALETTE } from '../../lib/color'
 
 function initialsFromName(fullName: string) {
   const parts = fullName.trim().split(/\s+/).filter(Boolean)
@@ -17,7 +18,7 @@ export function ClaimProfile() {
   const { profiles, loading: profilesLoading } = useProfiles()
   const [name, setName] = useState('')
   const [initials, setInitials] = useState('')
-  const [color, setColor] = useState<string>(PROFILE_COLORS[0])
+  const [color, setColor] = useState<string>(MEMBER_PALETTE[0])
   const [isAdmin, setIsAdmin] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -31,7 +32,7 @@ export function ClaimProfile() {
     }
   }, [session])
 
-  const takenColors = new Set(profiles.filter((p) => p.claimed).map((p) => p.color))
+  const takenColors = profiles.filter((p) => p.claimed).map((p) => p.color)
   const currentAdmin = profiles.find((p) => p.claimed && p.role === 'admin')
   const adminTaken = !!currentAdmin
 
@@ -77,29 +78,8 @@ export function ClaimProfile() {
         </p>
 
         {!profilesLoading && (
-          <div className="mt-5 flex gap-2">
-            {PROFILE_COLORS.map((presetColor) => {
-              const taken = takenColors.has(presetColor)
-              const selected = color === presetColor
-              return (
-                <button
-                  key={presetColor}
-                  type="button"
-                  disabled={taken}
-                  onClick={() => setColor(presetColor)}
-                  aria-label={taken ? 'Color taken' : 'Choose this color'}
-                  title={taken ? 'Already taken' : undefined}
-                  className={`h-9 w-9 rounded-full border-2 transition-colors ${
-                    taken
-                      ? 'cursor-not-allowed opacity-25'
-                      : selected
-                        ? 'border-slate-900'
-                        : 'border-transparent hover:border-slate-300'
-                  }`}
-                  style={{ backgroundColor: presetColor }}
-                />
-              )
-            })}
+          <div className="mt-5">
+            <ColorSwatchPicker value={color} onChange={setColor} takenColors={takenColors} />
           </div>
         )}
 
@@ -135,32 +115,18 @@ export function ClaimProfile() {
               placeholder="e.g. Omar"
             />
           </div>
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label htmlFor="initials" className="block text-sm font-medium text-slate-700">
-                Initials
-              </label>
-              <input
-                id="initials"
-                value={initials}
-                onChange={(e) => setInitials(e.target.value)}
-                maxLength={2}
-                className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm uppercase focus-visible:ring-2 focus-visible:ring-accent"
-                placeholder="OM"
-              />
-            </div>
-            <div className="flex-1">
-              <label htmlFor="color" className="block text-sm font-medium text-slate-700">
-                Color
-              </label>
-              <input
-                id="color"
-                type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className="mt-1 h-9 w-full rounded-md border border-slate-300"
-              />
-            </div>
+          <div>
+            <label htmlFor="initials" className="block text-sm font-medium text-slate-700">
+              Initials
+            </label>
+            <input
+              id="initials"
+              value={initials}
+              onChange={(e) => setInitials(e.target.value)}
+              maxLength={2}
+              className="mt-1 w-24 rounded-md border border-slate-300 px-3 py-2 text-sm uppercase focus-visible:ring-2 focus-visible:ring-accent"
+              placeholder="OM"
+            />
           </div>
         </div>
 
