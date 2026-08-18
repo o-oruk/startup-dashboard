@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import type { Profile, Task } from '../../types'
 import { DatePicker } from '../shared/DatePicker'
+import { Avatar } from '../layout/Avatar'
 import { AssigneePicker } from './AssigneePicker'
 import { DueBadge } from './DueBadge'
+import { WeightBadge } from './WeightBadge'
 import { WeightPicker } from './WeightPicker'
 import { todayISO } from '../../hooks/useTasks'
 import { isUrgentDue } from '../../lib/dueDate'
@@ -34,7 +36,9 @@ export function TaskRow({
   const [title, setTitle] = useState(task.title)
   const completedBy = profiles.find((p) => p.id === task.completed_by)
   const today = todayISO()
-  const isUrgent = isUrgentDue(task.due_date, task.status === 'done', today)
+  const isDone = task.status === 'done'
+  const isUrgent = isUrgentDue(task.due_date, isDone, today)
+  const assignees = profiles.filter((p) => task.assignee_ids.includes(p.id))
 
   async function saveTitle() {
     setEditing(false)
@@ -55,15 +59,14 @@ export function TaskRow({
             onKeyDown={(e) => e.key === 'Enter' && saveTitle()}
             className="w-full rounded-md border border-slate-300 px-2 py-1 text-sm focus-visible:ring-2 focus-visible:ring-accent"
           />
+        ) : isDone ? (
+          <span className="text-sm text-slate-400 line-through">{task.title}</span>
         ) : (
-          <button
-            onClick={() => setEditing(true)}
-            className={`text-left text-sm ${task.status === 'done' ? 'text-slate-400 line-through' : 'text-slate-800'}`}
-          >
+          <button onClick={() => setEditing(true)} className="text-left text-sm text-slate-800">
             {task.title}
           </button>
         )}
-        {task.status === 'done' && (
+        {isDone && (
           <p className="mt-0.5 text-xs text-slate-400">
             {completedBy && `Completed by ${completedBy.name} on ${task.completed_date}`}
             <button
@@ -76,19 +79,49 @@ export function TaskRow({
         )}
       </div>
 
-      <WeightPicker value={task.weight} onChange={(weight) => onUpdate({ weight })} />
+      {isDone ? (
+        <WeightBadge weight={task.weight} />
+      ) : (
+        <WeightPicker value={task.weight} onChange={(weight) => onUpdate({ weight })} />
+      )}
 
       <div className="flex items-center gap-1.5">
-        <DatePicker
-          value={task.due_date ?? ''}
-          onChange={(date) => onUpdate({ due_date: date || null })}
-          placeholder="Deadline"
-          clearable
-        />
-        {task.due_date && <DueBadge dueDate={task.due_date} today={today} isUrgent={isUrgent} />}
+        {isDone ? (
+          task.due_date && (
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">
+              Was due{' '}
+              {new Date(task.due_date + 'T00:00:00').toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              })}
+            </span>
+          )
+        ) : (
+          <>
+            <DatePicker
+              value={task.due_date ?? ''}
+              onChange={(date) => onUpdate({ due_date: date || null })}
+              placeholder="Deadline"
+              clearable
+            />
+            {task.due_date && <DueBadge dueDate={task.due_date} today={today} isUrgent={isUrgent} />}
+          </>
+        )}
       </div>
 
-      <AssigneePicker profiles={profiles} selectedIds={task.assignee_ids} onToggle={onToggleAssignee} />
+      {isDone ? (
+        assignees.length === 0 ? (
+          <Avatar profile={undefined} size="sm" />
+        ) : (
+          <div className="flex -space-x-1.5">
+            {assignees.map((p) => (
+              <Avatar key={p.id} profile={p} size="sm" />
+            ))}
+          </div>
+        )
+      ) : (
+        <AssigneePicker profiles={profiles} selectedIds={task.assignee_ids} onToggle={onToggleAssignee} />
+      )}
 
       <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
         {STATUS_LABEL[task.status]}
