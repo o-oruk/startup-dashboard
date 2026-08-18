@@ -59,12 +59,14 @@ export function hueDistance(a: number, b: number): number {
  * "another blue", rose read as "another red") and muted 600-weight oranges/
  * yellows that looked muddy as solid swatches rather than crisp accent colors.
  * Every entry here is a bright 500-weight tone, spaced well apart in hue.
+ *
+ * No green: presence dots use emerald for "online" elsewhere in the app, and a
+ * green avatar would be too easily mistaken for that status indicator.
  */
 export const MEMBER_PALETTE: string[] = [
   '#ef4444', // red
   '#f97316', // orange
   '#eab308', // yellow
-  '#22c55e', // green
   '#14b8a6', // teal
   '#3b82f6', // blue
   '#a855f7', // purple
