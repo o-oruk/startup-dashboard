@@ -53,8 +53,33 @@ export function hueDistance(a: number, b: number): number {
   return diff > 180 ? 360 - diff : diff
 }
 
-/** A curated set of evenly-spaced, consistently-toned swatches (same hue/lightness formula as objective colors). */
-export const MEMBER_PALETTE: string[] = Array.from({ length: 12 }, (_, i) => vividHue(i * 30))
+/**
+ * A curated 12-color palette (one representative shade per named color family),
+ * not evenly-spaced by raw hue degree. Human vision is far less sensitive to hue
+ * changes in the yellow/green band than in red/blue/violet, so a naive
+ * evenly-spaced HSL wheel visually clusters several near-identical greens while
+ * leaving reds thin. These stops are chosen by eye across the full spectrum so
+ * every swatch actually reads as a distinct color, not just a distinct number.
+ */
+export const MEMBER_PALETTE: string[] = [
+  '#dc2626', // red
+  '#ea580c', // orange
+  '#d97706', // amber
+  '#ca8a04', // yellow
+  '#65a30d', // lime
+  '#16a34a', // green
+  '#0d9488', // teal
+  '#0891b2', // cyan
+  '#2563eb', // blue
+  '#4f46e5', // indigo
+  '#7c3aed', // violet
+  '#e11d48', // rose
+]
 
-/** Minimum hue-degrees apart a new member color must be from every already-used color. */
-export const MIN_COLOR_SEPARATION = 25
+/**
+ * Minimum hue-degrees apart a new member color must be from every already-used
+ * color. Kept below the smallest real gap between any two palette swatches
+ * (~8.5°, amber↔yellow) so distinct swatches never block each other — this
+ * only catches an actual duplicate (or near-duplicate) pick.
+ */
+export const MIN_COLOR_SEPARATION = 6
