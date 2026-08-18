@@ -10,6 +10,7 @@ import { Daily } from './pages/Daily'
 import { Progress } from './pages/Progress'
 import { Calendar } from './pages/Calendar'
 import { Team } from './pages/Team'
+import { MyProfile } from './pages/MyProfile'
 
 function Gate() {
   const { session, profile, loading, isPasswordRecovery } = useAuth()
@@ -34,6 +35,7 @@ function Gate() {
         <Route path="/progress" element={<Progress />} />
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/team" element={<Team />} />
+        <Route path="/profile" element={<MyProfile />} />
       </Routes>
     </AppShell>
   )

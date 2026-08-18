@@ -64,8 +64,17 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <div className="h-5 w-px bg-slate-200" />
                 </>
               )}
-              <Avatar profile={profile} size="sm" status={profile ? (presence[profile.id] ?? 'offline') : undefined} />
-              <span className="hidden text-sm text-slate-600 sm:inline">{profile?.name}</span>
+              <NavLink
+                to="/profile"
+                className={({ isActive }) =>
+                  `flex items-center gap-2 rounded-md px-1.5 py-1 transition-colors ${
+                    isActive ? 'bg-accent-light' : 'hover:bg-slate-100'
+                  }`
+                }
+              >
+                <Avatar profile={profile} size="sm" status={profile ? (presence[profile.id] ?? 'offline') : undefined} />
+                <span className="hidden text-sm text-slate-600 sm:inline">{profile?.name}</span>
+              </NavLink>
               <button
                 onClick={signOut}
                 className="rounded-md px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-800"
