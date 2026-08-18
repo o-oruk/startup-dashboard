@@ -1,5 +1,6 @@
 import type { Profile } from '../../types'
 import type { PresenceStatus } from '../../hooks/usePresence'
+import { textColorFor } from '../../lib/color'
 
 const SIZES = {
   sm: 'h-6 w-6 text-xs',
@@ -58,8 +59,8 @@ export function Avatar({
     <span className="relative inline-flex shrink-0">
       <span
         title={profile.name || 'Unnamed'}
-        className={`inline-flex items-center justify-center rounded-full font-semibold text-white ${SIZES[size]}`}
-        style={{ backgroundColor: profile.color }}
+        className={`inline-flex items-center justify-center rounded-full font-semibold ${SIZES[size]}`}
+        style={{ backgroundColor: profile.color, color: textColorFor(profile.color) }}
       >
         {profile.initials || '?'}
       </span>

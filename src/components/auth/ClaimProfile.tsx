@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useProfiles } from '../../hooks/useProfiles'
 import { Avatar } from '../layout/Avatar'
 import { ColorSwatchPicker } from '../shared/ColorSwatchPicker'
-import { MEMBER_PALETTE, MIN_COLOR_SEPARATION, colorToHue, hueDistance } from '../../lib/color'
+import { MEMBER_PALETTE } from '../../lib/color'
 
 function initialsFromName(fullName: string) {
   const parts = fullName.trim().split(/\s+/).filter(Boolean)
@@ -41,10 +41,8 @@ export function ClaimProfile() {
   // hitting Save without touching the picker can never collide with a teammate.
   useEffect(() => {
     if (profilesLoading || colorTouched) return
-    const available = MEMBER_PALETTE.find(
-      (swatch) =>
-        !takenColors.some((taken) => hueDistance(colorToHue(swatch), colorToHue(taken)) < MIN_COLOR_SEPARATION),
-    )
+    const takenSet = new Set(takenColors.map((c) => c.toUpperCase()))
+    const available = MEMBER_PALETTE.find((swatch) => !takenSet.has(swatch.toUpperCase()))
     if (available) setColor(available)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profilesLoading])
