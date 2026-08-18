@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAuth } from '../hooks/useAuth'
 import { useProfiles } from '../hooks/useProfiles'
 import { usePresence, type PresenceStatus } from '../hooks/usePresence'
 import { Avatar } from '../components/layout/Avatar'
@@ -11,11 +12,13 @@ const STATUS_TEXT: Record<PresenceStatus, string> = {
 }
 
 export function Team() {
-  const { profiles, loading } = useProfiles()
+  const { profile: me } = useAuth()
+  const { profiles, loading, updateName } = useProfiles()
   const presence = usePresence()
   const claimed = profiles.filter((p) => p.claimed)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selected = claimed.find((p) => p.id === selectedId)
+  const isAdmin = me?.role === 'admin'
 
   return (
     <div className="space-y-5">
@@ -60,6 +63,8 @@ export function Team() {
         <MemberModal
           profile={selected}
           status={presence[selected.id] ?? 'offline'}
+          canEdit={isAdmin || selected.id === me?.id}
+          onSaveName={(name) => updateName(selected.id, name)}
           onClose={() => setSelectedId(null)}
         />
       )}

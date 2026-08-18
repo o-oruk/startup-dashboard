@@ -110,6 +110,12 @@ create policy "a user can update only their own profile"
   using (auth.uid() = id)
   with check (auth.uid() = id);
 
+create policy "admin can update any profile"
+  on profiles for update
+  to authenticated
+  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'))
+  with check (exists (select 1 from profiles p where p.id = auth.uid() and p.role = 'admin'));
+
 create policy "objectives readable by signed-in users"
   on objectives for select
   to authenticated

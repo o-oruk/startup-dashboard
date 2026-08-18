@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Profile } from '../../types'
 import type { PresenceStatus } from '../../hooks/usePresence'
 import { Avatar } from '../layout/Avatar'
@@ -17,12 +18,40 @@ const STATUS_DOT: Record<PresenceStatus, string> = {
 export function MemberModal({
   profile,
   status,
+  canEdit,
+  onSaveName,
   onClose,
 }: {
   profile: Profile
   status: PresenceStatus
+  canEdit: boolean
+  onSaveName: (name: string) => Promise<void>
   onClose: () => void
 }) {
+  const [editing, setEditing] = useState(false)
+  const [name, setName] = useState(profile.name)
+  const [busy, setBusy] = useState(false)
+
+  async function handleSave() {
+    const trimmed = name.trim()
+    if (!trimmed) {
+      setName(profile.name)
+      setEditing(false)
+      return
+    }
+    if (trimmed === profile.name) {
+      setEditing(false)
+      return
+    }
+    setBusy(true)
+    try {
+      await onSaveName(trimmed)
+      setEditing(false)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4"
@@ -56,8 +85,46 @@ export function MemberModal({
 
         <div className="mt-5 space-y-3 border-t border-slate-100 pt-4">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Username</p>
-            <p className="mt-0.5 text-sm text-slate-800">{profile.name}</p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Username</p>
+              {canEdit && !editing && (
+                <button
+                  onClick={() => {
+                    setName(profile.name)
+                    setEditing(true)
+                  }}
+                  className="text-xs font-medium text-accent hover:underline"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+            {editing ? (
+              <div className="mt-1 flex items-center gap-1.5">
+                <input
+                  autoFocus
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+                  className="min-w-0 flex-1 rounded-md border border-slate-300 px-2 py-1 text-sm focus-visible:ring-2 focus-visible:ring-accent"
+                />
+                <button
+                  onClick={() => setEditing(false)}
+                  className="rounded-md px-2 py-1 text-xs text-slate-500 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={busy}
+                  className="rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-white hover:bg-accent/90 disabled:opacity-50"
+                >
+                  Save
+                </button>
+              </div>
+            ) : (
+              <p className="mt-0.5 text-sm text-slate-800">{profile.name}</p>
+            )}
           </div>
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Email</p>

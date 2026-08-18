@@ -23,7 +23,13 @@ export function useProfiles() {
     }
   }, [])
 
-  return { profiles, loading, refresh: load }
+  async function updateName(id: string, name: string) {
+    const { error } = await supabase.from('profiles').update({ name }).eq('id', id)
+    if (error) throw error
+    await load()
+  }
+
+  return { profiles, loading, updateName, refresh: load }
 }
 
 export function profileById(profiles: Profile[], id: string | null): Profile | undefined {
