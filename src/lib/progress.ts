@@ -53,6 +53,15 @@ export const LEVEL_LABEL: Record<PointLevel, string> = {
   green: 'Strong day (5+ pts)',
 }
 
+/** Tasks completed on a given date, optionally restricted to one member. Heaviest first. */
+export function tasksCompletedOn(tasks: Task[], date: string, memberId?: string): Task[] {
+  return tasks
+    .filter(
+      (t) => t.status === 'done' && t.completed_date === date && (!memberId || t.completed_by === memberId),
+    )
+    .sort((a, b) => b.weight - a.weight)
+}
+
 /** Team points for each date in range: sum of weight for tasks completed that day. */
 export function teamPointsByDate(tasks: Task[]): Map<string, number> {
   const map = new Map<string, number>()

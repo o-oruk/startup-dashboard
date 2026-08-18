@@ -10,12 +10,14 @@ export function MemberCard({
   pointsByDate,
   today,
   presence,
+  onSelectDate,
 }: {
   profile: Profile
   dates: string[]
   pointsByDate: Map<string, number>
   today: string
   presence?: PresenceStatus
+  onSelectDate: (date: string) => void
 }) {
   const joinedDate = profile.created_at.slice(0, 10)
   const total = totalPoints(pointsByDate, dates)
@@ -44,7 +46,14 @@ export function MemberCard({
           </div>
         </div>
       </div>
-      <Heatmap dates={dates} pointsByDate={pointsByDate} today={today} joinedDate={joinedDate} cellSize={10} />
+      <Heatmap
+        dates={dates}
+        pointsByDate={pointsByDate}
+        today={today}
+        joinedDate={joinedDate}
+        cellSize={10}
+        onSelectDate={onSelectDate}
+      />
     </div>
   )
 }

@@ -10,17 +10,19 @@ export function Heatmap({
   today,
   joinedDate,
   cellSize = 13,
+  onSelectDate,
 }: {
   dates: string[]
   pointsByDate: Map<string, number>
   today: string
   joinedDate?: string
   cellSize?: number
+  onSelectDate?: (date: string) => void
 }) {
   const weeks = toWeeks(dates)
 
   return (
-    <div className="overflow-x-auto">
+    <div className="-m-2 overflow-x-auto p-2">
       <div className="flex gap-[3px]">
         {weeks.map((week, wi) => {
           const firstDateInWeek = week.find((d): d is string => d !== null)
@@ -35,24 +37,32 @@ export function Heatmap({
               </div>
               {week.map((date, di) => {
                 if (!date) {
-                  return (
-                    <div key={di} style={{ width: cellSize, height: cellSize }} />
-                  )
+                  return <div key={di} style={{ width: cellSize, height: cellSize }} />
                 }
                 const points = pointsByDate.get(date) ?? 0
                 const level = levelForPoints(points, date, today, joinedDate)
+                const clickable = onSelectDate && level !== 'future' && level !== 'not-joined'
                 const title =
-                  level === 'not-joined' ? `${date} — not on the team yet` : `${date} — ${points} point${points === 1 ? '' : 's'}`
+                  level === 'not-joined'
+                    ? `${date} — not on the team yet`
+                    : level === 'future'
+                      ? `${date} — upcoming`
+                      : `${date} — ${points} point${points === 1 ? '' : 's'}${clickable ? ' (click for details)' : ''}`
                 return (
-                  <div
+                  <button
                     key={di}
+                    type="button"
+                    disabled={!clickable}
+                    onClick={() => clickable && onSelectDate!(date)}
                     title={title}
                     style={{
                       width: cellSize,
                       height: cellSize,
                       backgroundColor: LEVEL_COLOR[level],
                     }}
-                    className="rounded-[3px]"
+                    className={`rounded-[3px] transition-transform ${
+                      clickable ? 'cursor-pointer hover:scale-125' : 'cursor-default'
+                    }`}
                   />
                 )
               })}
