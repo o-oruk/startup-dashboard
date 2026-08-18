@@ -54,32 +54,27 @@ export function hueDistance(a: number, b: number): number {
 }
 
 /**
- * A curated 12-color palette (one representative shade per named color family),
- * not evenly-spaced by raw hue degree. Human vision is far less sensitive to hue
- * changes in the yellow/green band than in red/blue/violet, so a naive
- * evenly-spaced HSL wheel visually clusters several near-identical greens while
- * leaving reds thin. These stops are chosen by eye across the full spectrum so
- * every swatch actually reads as a distinct color, not just a distinct number.
+ * A curated, deliberately small palette of vivid, unmistakably-different colors.
+ * Trimmed down from a wider set that had near-duplicate pairs (indigo read as
+ * "another blue", rose read as "another red") and muted 600-weight oranges/
+ * yellows that looked muddy as solid swatches rather than crisp accent colors.
+ * Every entry here is a bright 500-weight tone, spaced well apart in hue.
  */
 export const MEMBER_PALETTE: string[] = [
-  '#dc2626', // red
-  '#ea580c', // orange
-  '#d97706', // amber
-  '#ca8a04', // yellow
-  '#65a30d', // lime
-  '#16a34a', // green
-  '#0d9488', // teal
-  '#0891b2', // cyan
-  '#2563eb', // blue
-  '#4f46e5', // indigo
-  '#7c3aed', // violet
-  '#e11d48', // rose
+  '#ef4444', // red
+  '#f97316', // orange
+  '#eab308', // yellow
+  '#22c55e', // green
+  '#14b8a6', // teal
+  '#3b82f6', // blue
+  '#a855f7', // purple
+  '#ec4899', // pink
 ]
 
 /**
  * Minimum hue-degrees apart a new member color must be from every already-used
- * color. Kept below the smallest real gap between any two palette swatches
- * (~8.5°, amber↔yellow) so distinct swatches never block each other — this
- * only catches an actual duplicate (or near-duplicate) pick.
+ * color. Kept comfortably below the smallest real gap between any two palette
+ * swatches (~20°, orange↔yellow) so distinct swatches never block each other —
+ * this only catches an actual duplicate (or near-duplicate) pick.
  */
-export const MIN_COLOR_SEPARATION = 6
+export const MIN_COLOR_SEPARATION = 12

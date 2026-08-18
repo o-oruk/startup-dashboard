@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useProfiles } from '../../hooks/useProfiles'
 import { Avatar } from '../layout/Avatar'
 import { ColorSwatchPicker } from '../shared/ColorSwatchPicker'
-import { MEMBER_PALETTE } from '../../lib/color'
+import { MEMBER_PALETTE, MIN_COLOR_SEPARATION, colorToHue, hueDistance } from '../../lib/color'
 
 function initialsFromName(fullName: string) {
   const parts = fullName.trim().split(/\s+/).filter(Boolean)
@@ -19,6 +19,7 @@ export function ClaimProfile() {
   const [name, setName] = useState('')
   const [initials, setInitials] = useState('')
   const [color, setColor] = useState<string>(MEMBER_PALETTE[0])
+  const [colorTouched, setColorTouched] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -35,6 +36,18 @@ export function ClaimProfile() {
   const takenColors = profiles.filter((p) => p.claimed).map((p) => p.color)
   const currentAdmin = profiles.find((p) => p.claimed && p.role === 'admin')
   const adminTaken = !!currentAdmin
+
+  // Default to the first color nobody's using yet, instead of always red, so
+  // hitting Save without touching the picker can never collide with a teammate.
+  useEffect(() => {
+    if (profilesLoading || colorTouched) return
+    const available = MEMBER_PALETTE.find(
+      (swatch) =>
+        !takenColors.some((taken) => hueDistance(colorToHue(swatch), colorToHue(taken)) < MIN_COLOR_SEPARATION),
+    )
+    if (available) setColor(available)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profilesLoading])
 
   async function handleSave() {
     if (!session) return
@@ -79,7 +92,14 @@ export function ClaimProfile() {
 
         {!profilesLoading && (
           <div className="mt-5">
-            <ColorSwatchPicker value={color} onChange={setColor} takenColors={takenColors} />
+            <ColorSwatchPicker
+              value={color}
+              onChange={(c) => {
+                setColor(c)
+                setColorTouched(true)
+              }}
+              takenColors={takenColors}
+            />
           </div>
         )}
 
