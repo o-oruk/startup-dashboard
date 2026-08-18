@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { to: '/daily', label: 'Tasks' },
   { to: '/progress', label: 'Progress' },
   { to: '/calendar', label: 'Calendar' },
+  { to: '/team', label: 'Team' },
 ]
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -54,8 +55,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               {teammates.length > 0 && (
                 <>
                   <div className="flex -space-x-1.5">
-                    {teammates.map((p) => (
-                      <Avatar key={p.id} profile={p} size="sm" status={presence[p.id]} />
+                    {teammates.map((p, i) => (
+                      <span key={p.id} className="relative" style={{ zIndex: teammates.length - i }}>
+                        <Avatar profile={p} size="sm" status={presence[p.id]} />
+                      </span>
                     ))}
                   </div>
                   <div className="h-5 w-px bg-slate-200" />

@@ -9,6 +9,7 @@ import { Board } from './pages/Board'
 import { Daily } from './pages/Daily'
 import { Progress } from './pages/Progress'
 import { Calendar } from './pages/Calendar'
+import { Team } from './pages/Team'
 
 function Gate() {
   const { session, profile, loading, isPasswordRecovery } = useAuth()
@@ -32,6 +33,7 @@ function Gate() {
         <Route path="/daily" element={<Daily />} />
         <Route path="/progress" element={<Progress />} />
         <Route path="/calendar" element={<Calendar />} />
+        <Route path="/team" element={<Team />} />
       </Routes>
     </AppShell>
   )
