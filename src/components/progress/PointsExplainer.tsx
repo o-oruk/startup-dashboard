@@ -1,6 +1,6 @@
 import { LEVEL_COLOR, LEVEL_LABEL, type PointLevel } from '../../lib/progress'
 
-const LEVELS: PointLevel[] = ['red', 'orange', 'yellow', 'green']
+const LEVELS: PointLevel[] = ['red', 'orange', 'yellow', 'green', 'not-joined']
 
 export function PointsExplainer() {
   return (

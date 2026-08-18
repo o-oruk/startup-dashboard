@@ -17,8 +17,9 @@ export function MemberCard({
   today: string
   presence?: PresenceStatus
 }) {
+  const joinedDate = profile.created_at.slice(0, 10)
   const total = totalPoints(pointsByDate, dates)
-  const rate = activeDayRate(pointsByDate, dates, today)
+  const rate = activeDayRate(pointsByDate, dates, today, joinedDate)
   const streak = currentStreak(pointsByDate, dates, today)
 
   return (
@@ -43,7 +44,7 @@ export function MemberCard({
           </div>
         </div>
       </div>
-      <Heatmap dates={dates} pointsByDate={pointsByDate} today={today} cellSize={10} />
+      <Heatmap dates={dates} pointsByDate={pointsByDate} today={today} joinedDate={joinedDate} cellSize={10} />
     </div>
   )
 }

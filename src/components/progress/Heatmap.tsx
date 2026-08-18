@@ -8,11 +8,13 @@ export function Heatmap({
   dates,
   pointsByDate,
   today,
+  joinedDate,
   cellSize = 13,
 }: {
   dates: string[]
   pointsByDate: Map<string, number>
   today: string
+  joinedDate?: string
   cellSize?: number
 }) {
   const weeks = toWeeks(dates)
@@ -38,11 +40,13 @@ export function Heatmap({
                   )
                 }
                 const points = pointsByDate.get(date) ?? 0
-                const level = levelForPoints(points, date, today)
+                const level = levelForPoints(points, date, today, joinedDate)
+                const title =
+                  level === 'not-joined' ? `${date} — not on the team yet` : `${date} — ${points} point${points === 1 ? '' : 's'}`
                 return (
                   <div
                     key={di}
-                    title={`${date} — ${points} point${points === 1 ? '' : 's'}`}
+                    title={title}
                     style={{
                       width: cellSize,
                       height: cellSize,

@@ -57,14 +57,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <div className="flex -space-x-1.5">
                     {teammates.map((p, i) => (
                       <span key={p.id} className="relative" style={{ zIndex: teammates.length - i }}>
-                        <Avatar profile={p} size="sm" status={presence[p.id]} />
+                        <Avatar profile={p} size="sm" status={presence[p.id] ?? 'offline'} />
                       </span>
                     ))}
                   </div>
                   <div className="h-5 w-px bg-slate-200" />
                 </>
               )}
-              <Avatar profile={profile} size="sm" status={profile ? presence[profile.id] : undefined} />
+              <Avatar profile={profile} size="sm" status={profile ? (presence[profile.id] ?? 'offline') : undefined} />
               <span className="hidden text-sm text-slate-600 sm:inline">{profile?.name}</span>
               <button
                 onClick={signOut}

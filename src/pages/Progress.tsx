@@ -56,7 +56,7 @@ export function Progress() {
                 dates={dates}
                 pointsByDate={memberPointsByDate(tasks, profile.id)}
                 today={today}
-                presence={presence[profile.id]}
+                presence={presence[profile.id] ?? 'offline'}
               />
             ))}
           </div>

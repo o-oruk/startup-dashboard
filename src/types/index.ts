@@ -4,6 +4,7 @@ export type TaskWeight = 1 | 2 | 3
 export interface Profile {
   id: string
   name: string
+  email: string | null
   initials: string
   color: string
   role: string

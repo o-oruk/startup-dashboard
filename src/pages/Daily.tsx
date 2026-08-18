@@ -84,7 +84,7 @@ export function Daily() {
             return (
               <div key={assigneeId}>
                 <div className="mb-2 flex items-center gap-2">
-                  <Avatar profile={groupProfile} size="sm" status={groupProfile ? presence[groupProfile.id] : undefined} />
+                  <Avatar profile={groupProfile} size="sm" status={groupProfile ? (presence[groupProfile.id] ?? 'offline') : undefined} />
                   <span className="text-sm font-medium text-slate-700">
                     {groupProfile?.name ?? 'Unassigned'}
                   </span>

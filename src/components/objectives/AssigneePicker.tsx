@@ -65,7 +65,7 @@ export function AssigneePicker({
                     isSelected ? 'bg-accent-light' : ''
                   }`}
                 >
-                  <Avatar profile={p} size="sm" status={presence[p.id]} />
+                  <Avatar profile={p} size="sm" status={presence[p.id] ?? 'offline'} />
                   <span className="flex-1 truncate text-slate-700">{p.name}</span>
                   {isSelected && (
                     <svg viewBox="0 0 12 12" className="h-3.5 w-3.5 shrink-0 text-accent" fill="none">

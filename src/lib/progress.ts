@@ -4,7 +4,7 @@ import type { Task } from '../types'
 export const SPRINT_START = '2026-08-17'
 export const SPRINT_END = '2026-10-15'
 
-export type PointLevel = 'future' | 'red' | 'orange' | 'yellow' | 'green'
+export type PointLevel = 'future' | 'not-joined' | 'red' | 'orange' | 'yellow' | 'green'
 
 export function todayISO() {
   return new Date().toLocaleDateString('en-CA')
@@ -21,7 +21,13 @@ export function dateRange(start: string, end: string): string[] {
   return dates
 }
 
-export function levelForPoints(points: number, date: string, today: string): PointLevel {
+export function levelForPoints(
+  points: number,
+  date: string,
+  today: string,
+  joinedDate?: string,
+): PointLevel {
+  if (joinedDate && date < joinedDate) return 'not-joined'
   if (date > today) return 'future'
   if (points <= 0) return 'red'
   if (points <= 2) return 'orange'
@@ -31,6 +37,7 @@ export function levelForPoints(points: number, date: string, today: string): Poi
 
 export const LEVEL_COLOR: Record<PointLevel, string> = {
   future: '#e5e7eb',
+  'not-joined': '#94a3b8',
   red: '#ef4444',
   orange: '#f97316',
   yellow: '#eab308',
@@ -39,6 +46,7 @@ export const LEVEL_COLOR: Record<PointLevel, string> = {
 
 export const LEVEL_LABEL: Record<PointLevel, string> = {
   future: 'Upcoming',
+  'not-joined': 'Not on the team yet',
   red: 'No execution (0 pts)',
   orange: 'Light day (1-2 pts)',
   yellow: 'Solid day (3-4 pts)',
@@ -69,8 +77,13 @@ export function totalPoints(pointsByDate: Map<string, number>, dates: string[]):
   return dates.reduce((sum, d) => sum + (pointsByDate.get(d) ?? 0), 0)
 }
 
-export function activeDayRate(pointsByDate: Map<string, number>, dates: string[], today: string): number {
-  const pastDates = dates.filter((d) => d <= today)
+export function activeDayRate(
+  pointsByDate: Map<string, number>,
+  dates: string[],
+  today: string,
+  joinedDate?: string,
+): number {
+  const pastDates = dates.filter((d) => d <= today && (!joinedDate || d >= joinedDate))
   if (pastDates.length === 0) return 0
   const active = pastDates.filter((d) => (pointsByDate.get(d) ?? 0) > 0).length
   return active / pastDates.length

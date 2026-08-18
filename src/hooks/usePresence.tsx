@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 
-export type PresenceStatus = 'online' | 'away'
+export type PresenceStatus = 'online' | 'away' | 'offline'
 
 const IDLE_TIMEOUT_MS = 5 * 60 * 1000
 

@@ -16,11 +16,13 @@ const DOT_SIZES = {
 const STATUS_COLOR: Record<PresenceStatus, string> = {
   online: 'bg-emerald-500',
   away: 'bg-amber-400',
+  offline: 'bg-slate-300',
 }
 
 const STATUS_LABEL: Record<PresenceStatus, string> = {
   online: 'Online',
   away: 'Away',
+  offline: 'Offline',
 }
 
 export function Avatar({

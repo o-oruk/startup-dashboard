@@ -8,6 +8,7 @@
 create table if not exists profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   name text not null default '',
+  email text,
   initials text not null default '',
   color text not null default '#4f46e5',
   role text not null default 'member',
@@ -73,8 +74,8 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, name)
-  values (new.id, coalesce(new.raw_user_meta_data->>'username', ''))
+  insert into public.profiles (id, name, email)
+  values (new.id, coalesce(new.raw_user_meta_data->>'username', ''), new.email)
   on conflict (id) do nothing;
   return new;
 end;
