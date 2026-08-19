@@ -31,6 +31,7 @@ export function DatePicker({
 
   const days = monthMatrix(viewMonth)
   const currentMonth = viewMonth.getMonth()
+  const today = toISODate(new Date())
   const label = value
     ? new Date(value + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     : null
@@ -86,6 +87,7 @@ export function DatePicker({
               const iso = toISODate(day)
               const inMonth = day.getMonth() === currentMonth
               const isSelected = iso === value
+              const isToday = iso === today
               return (
                 <button
                   key={iso}
@@ -94,13 +96,14 @@ export function DatePicker({
                     onChange(iso)
                     setOpen(false)
                   }}
+                  title={isToday ? 'Today' : undefined}
                   className={`rounded-md py-1 text-xs transition-colors ${
                     isSelected
                       ? 'bg-accent font-semibold text-white'
                       : inMonth
                         ? 'text-slate-700 hover:bg-slate-100'
                         : 'text-slate-300 hover:bg-slate-50'
-                  }`}
+                  } ${isToday && !isSelected ? 'ring-1 ring-inset ring-accent font-semibold text-accent' : ''}`}
                 >
                   {day.getDate()}
                 </button>

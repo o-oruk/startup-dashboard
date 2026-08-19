@@ -51,6 +51,25 @@ export function AssigneePicker({
 
       {open && (
         <div className="absolute left-0 top-full z-20 mt-1 w-44 rounded-lg border border-slate-200 bg-white p-1.5 shadow-lg">
+          <button
+            type="button"
+            onClick={() => selected.forEach((p) => onToggle(p.id, false))}
+            disabled={selected.length === 0}
+            className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${
+              selected.length === 0 ? 'cursor-default text-slate-300' : 'text-slate-500 hover:bg-slate-50'
+            }`}
+          >
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-slate-300 text-xs text-slate-400">
+              ?
+            </span>
+            <span className="flex-1">Unassigned</span>
+            {selected.length === 0 && (
+              <svg viewBox="0 0 12 12" className="h-3.5 w-3.5 shrink-0 text-accent" fill="none">
+                <path d="M2 6l2.5 2.5L10 3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </button>
+          {claimed.length > 0 && <div className="my-1 h-px bg-slate-100" />}
           {claimed.length === 0 ? (
             <p className="px-2 py-1.5 text-xs text-slate-400">No teammates yet</p>
           ) : (
