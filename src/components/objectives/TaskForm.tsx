@@ -22,7 +22,7 @@ export function TaskForm({
   const [dueDate, setDueDate] = useState('')
   const [busy, setBusy] = useState(false)
 
-  const canSubmit = !!title.trim() && weight !== null && assigneeIds.length > 0 && !!dueDate
+  const canSubmit = !!title.trim() && weight !== null && !!dueDate
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -59,7 +59,7 @@ export function TaskForm({
       <button
         type="submit"
         disabled={busy || !canSubmit}
-        title={canSubmit ? undefined : 'Set a deadline, a size, and at least one assignee'}
+        title={canSubmit ? undefined : 'Set a deadline and a size'}
         className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
       >
         Add task
