@@ -23,6 +23,7 @@ export function Calendar() {
   const events: AgendaEvent[] = dates.map((d) => ({
     id: d.id,
     date: d.date,
+    time: d.time,
     title: d.title,
     type: d.type,
     note: d.note,
@@ -31,6 +32,9 @@ export function Calendar() {
   const eventsByDate = new Map<string, AgendaEvent[]>()
   for (const event of events) {
     eventsByDate.set(event.date, [...(eventsByDate.get(event.date) ?? []), event])
+  }
+  for (const dayEvents of eventsByDate.values()) {
+    dayEvents.sort((a, b) => (a.time ?? '99:99').localeCompare(b.time ?? '99:99'))
   }
 
   return (

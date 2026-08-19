@@ -9,10 +9,17 @@ export function ImportantDateForm({
   onSubmit,
 }: {
   defaultDate: string
-  onSubmit: (input: { title: string; date: string; type: DateType; note: string | null }) => Promise<void>
+  onSubmit: (input: {
+    title: string
+    date: string
+    time: string | null
+    type: DateType
+    note: string | null
+  }) => Promise<void>
 }) {
   const [title, setTitle] = useState('')
   const [date, setDate] = useState(defaultDate)
+  const [time, setTime] = useState('')
   const [type, setType] = useState<DateType>('event')
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
@@ -22,7 +29,7 @@ export function ImportantDateForm({
     if (!title.trim() || !date) return
     setBusy(true)
     try {
-      await onSubmit({ title: title.trim(), date, type, note: note.trim() || null })
+      await onSubmit({ title: title.trim(), date, time: time || null, type, note: note.trim() || null })
     } finally {
       setBusy(false)
     }
@@ -44,10 +51,24 @@ export function ImportantDateForm({
         />
       </div>
 
-      <div>
-        <span className="block text-sm font-medium text-slate-700">Date</span>
-        <div className="mt-1">
-          <DatePicker value={date} onChange={setDate} placeholder="Pick a date" triggerClassName="w-full py-2" />
+      <div className="flex gap-3">
+        <div className="flex-1">
+          <span className="block text-sm font-medium text-slate-700">Date</span>
+          <div className="mt-1">
+            <DatePicker value={date} onChange={setDate} placeholder="Pick a date" triggerClassName="w-full py-2" />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="date-time" className="block text-sm font-medium text-slate-700">
+            Time <span className="font-normal text-slate-400">(optional)</span>
+          </label>
+          <input
+            id="date-time"
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-accent"
+          />
         </div>
       </div>
 

@@ -49,6 +49,7 @@ create table if not exists important_dates (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   date date not null,
+  time time,
   type text not null default 'event' check (type in ('meeting', 'deadline', 'event')),
   note text,
   created_by uuid references profiles (id) on delete set null,

@@ -1,4 +1,4 @@
-import type { AgendaEvent } from '../../lib/calendar'
+import { formatTime, type AgendaEvent } from '../../lib/calendar'
 import { DATE_TYPE_COLOR } from '../../types'
 
 function formatDate(date: string, today: string) {
@@ -20,7 +20,9 @@ export function UpcomingList({
   today: string
   onJumpTo: (date: string) => void
 }) {
-  const upcoming = events.filter((e) => e.date >= today).sort((a, b) => a.date.localeCompare(b.date))
+  const upcoming = events
+    .filter((e) => e.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date) || (a.time ?? '99:99').localeCompare(b.time ?? '99:99'))
 
   if (upcoming.length === 0) {
     return (
@@ -49,6 +51,7 @@ export function UpcomingList({
               <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide" style={{ color }}>
                 <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
                 {formatDate(event.date, today)}
+                {event.time && ` · ${formatTime(event.time)}`}
               </span>
               <span className="truncate text-sm font-medium text-slate-800">{event.title}</span>
             </button>

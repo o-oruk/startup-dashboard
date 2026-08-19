@@ -7,7 +7,13 @@ export function AddDateModal({
   onClose,
 }: {
   date: string
-  onSubmit: (input: { title: string; date: string; type: DateType; note: string | null }) => Promise<void>
+  onSubmit: (input: {
+    title: string
+    date: string
+    time: string | null
+    type: DateType
+    note: string | null
+  }) => Promise<void>
   onClose: () => void
 }) {
   return (

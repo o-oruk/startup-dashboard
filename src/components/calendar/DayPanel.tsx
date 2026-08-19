@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { AgendaEvent } from '../../lib/calendar'
+import { formatTime, type AgendaEvent } from '../../lib/calendar'
 import { DATE_TYPE_COLOR, DATE_TYPE_LABEL, type DateType, type ImportantDate } from '../../types'
 import { DatePicker } from '../shared/DatePicker'
 import { AddDateModal } from './AddDateModal'
@@ -12,11 +12,12 @@ function EditDateRow({
   onCancel,
 }: {
   event: AgendaEvent
-  onSave: (fields: Partial<Pick<ImportantDate, 'title' | 'date' | 'type' | 'note'>>) => Promise<void>
+  onSave: (fields: Partial<Pick<ImportantDate, 'title' | 'date' | 'time' | 'type' | 'note'>>) => Promise<void>
   onCancel: () => void
 }) {
   const [title, setTitle] = useState(event.title)
   const [date, setDate] = useState(event.date)
+  const [time, setTime] = useState(event.time ?? '')
   const [type, setType] = useState<DateType>(event.type)
   const [note, setNote] = useState(event.note ?? '')
   const [busy, setBusy] = useState(false)
@@ -25,7 +26,7 @@ function EditDateRow({
     if (!title.trim() || !date) return
     setBusy(true)
     try {
-      await onSave({ title: title.trim(), date, type, note: note.trim() || null })
+      await onSave({ title: title.trim(), date, time: time || null, type, note: note.trim() || null })
     } finally {
       setBusy(false)
     }
@@ -45,6 +46,12 @@ function EditDateRow({
           className="min-w-[120px] flex-1 rounded-md border border-slate-300 px-2 py-1 text-sm focus-visible:ring-2 focus-visible:ring-accent"
         />
         <DatePicker value={date} onChange={setDate} />
+        <input
+          type="time"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          className="rounded-md border border-slate-300 px-2 py-1 text-sm focus-visible:ring-2 focus-visible:ring-accent"
+        />
       </div>
       <div className="flex gap-1">
         {TYPES.map((t) => (
@@ -92,10 +99,16 @@ export function DayPanel({
 }: {
   date: string
   events: AgendaEvent[]
-  onAddDate: (input: { title: string; date: string; type: DateType; note: string | null }) => Promise<void>
+  onAddDate: (input: {
+    title: string
+    date: string
+    time: string | null
+    type: DateType
+    note: string | null
+  }) => Promise<void>
   onUpdateDate: (
     id: string,
-    fields: Partial<Pick<ImportantDate, 'title' | 'date' | 'type' | 'note'>>,
+    fields: Partial<Pick<ImportantDate, 'title' | 'date' | 'time' | 'type' | 'note'>>,
   ) => Promise<void>
   onDeleteDate: (id: string) => Promise<void>
 }) {
@@ -139,7 +152,10 @@ export function DayPanel({
                     style={{ backgroundColor: DATE_TYPE_COLOR[event.type] }}
                   />
                   <div>
-                    <p className="text-sm font-medium text-slate-800">{event.title}</p>
+                    <p className="text-sm font-medium text-slate-800">
+                      {event.title}
+                      {event.time && <span className="ml-1.5 font-normal text-slate-400">{formatTime(event.time)}</span>}
+                    </p>
                     {event.note && <p className="text-xs text-slate-500">{event.note}</p>}
                   </div>
                 </div>
