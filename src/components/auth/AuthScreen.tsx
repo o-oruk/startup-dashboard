@@ -36,7 +36,10 @@ export function AuthScreen() {
         const { error, data } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { username: username.trim() } },
+          options: {
+            data: { username: username.trim() },
+            emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`,
+          },
         })
         if (error) throw error
         if (!data.session) {
