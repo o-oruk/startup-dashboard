@@ -39,6 +39,7 @@ export function TaskRow({
   const isDone = task.status === 'done'
   const isUrgent = isUrgentDue(task.due_date, isDone, today)
   const assignees = profiles.filter((p) => task.assignee_ids.includes(p.id))
+  const isAutoToday = task.status === 'backlog' && !!task.due_date && task.due_date <= today
 
   async function saveTitle() {
     setEditing(false)
@@ -124,11 +125,11 @@ export function TaskRow({
       )}
 
       <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
-        {STATUS_LABEL[task.status]}
+        {isAutoToday ? "On today's list" : STATUS_LABEL[task.status]}
       </span>
 
       <div className="ml-auto flex items-center gap-2">
-        {task.status === 'backlog' && (
+        {task.status === 'backlog' && !isAutoToday && (
           <button
             onClick={onPushToDaily}
             className="rounded-md bg-accent-light px-2 py-1 text-xs font-medium text-accent hover:bg-accent/20"
