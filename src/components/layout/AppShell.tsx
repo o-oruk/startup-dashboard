@@ -15,6 +15,8 @@ const NAV_ITEMS = [
   { to: '/team', label: 'Team' },
 ]
 
+const DRIVE_FOLDER_URL = 'https://drive.google.com/drive/folders/1CpxMWZJKCWwBrp-Dipca6WqA6oUYRsYk?usp=sharing'
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { profile, signOut } = useAuth()
   const presence = usePresence()
@@ -49,6 +51,23 @@ export function AppShell({ children }: { children: ReactNode }) {
                     {item.label}
                   </NavLink>
                 ))}
+                <a
+                  href={DRIVE_FOLDER_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                >
+                  Files
+                  <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none">
+                    <path
+                      d="M4 2h6v6M10 2L2 10"
+                      stroke="currentColor"
+                      strokeWidth="1.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </a>
               </nav>
             </div>
             <div className="flex items-center gap-3">
