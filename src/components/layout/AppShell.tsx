@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { usePresence } from '../../hooks/usePresence'
 import { useProfiles } from '../../hooks/useProfiles'
+import { useChat } from '../../hooks/useChat'
 import { Avatar } from './Avatar'
 import { Countdown } from './Countdown'
 import { Logo } from './Logo'
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
   { to: '/progress', label: 'Progress' },
   { to: '/calendar', label: 'Calendar' },
   { to: '/team', label: 'Team' },
+  { to: '/chat', label: 'Chat' },
 ]
 
 const DRIVE_FOLDER_URL = 'https://drive.google.com/drive/folders/1CpxMWZJKCWwBrp-Dipca6WqA6oUYRsYk?usp=sharing'
@@ -21,6 +23,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { profile, signOut } = useAuth()
   const presence = usePresence()
   const { profiles } = useProfiles()
+  const { unreadCount } = useChat()
   const teammates = profiles.filter((p) => p.claimed && p.id !== profile?.id)
 
   return (
@@ -49,6 +52,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                     }
                   >
                     {item.label}
+                    {item.to === '/chat' && unreadCount > 0 && (
+                      <span className="ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
                   </NavLink>
                 ))}
                 <a

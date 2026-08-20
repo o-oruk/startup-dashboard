@@ -45,6 +45,18 @@ create table if not exists task_assignees (
   primary key (task_id, profile_id)
 );
 
+create table if not exists messages (
+  id uuid primary key default gen_random_uuid(),
+  sender_id uuid not null references profiles (id) on delete cascade,
+  body text not null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists message_reads (
+  profile_id uuid primary key references profiles (id) on delete cascade,
+  last_read_at timestamptz not null default now()
+);
+
 create table if not exists important_dates (
   id uuid primary key default gen_random_uuid(),
   title text not null,
@@ -62,6 +74,7 @@ create index if not exists tasks_objective_id_idx on tasks (objective_id);
 create index if not exists tasks_scheduled_date_idx on tasks (scheduled_date);
 create index if not exists tasks_completed_date_idx on tasks (completed_date);
 create index if not exists tasks_status_idx on tasks (status);
+create index if not exists messages_created_at_idx on messages (created_at);
 
 -- ─────────────────────────────────────────────────────────────
 -- Auto-create a blank profile row whenever someone signs up.
@@ -99,6 +112,8 @@ alter table objectives enable row level security;
 alter table tasks enable row level security;
 alter table task_assignees enable row level security;
 alter table important_dates enable row level security;
+alter table messages enable row level security;
+alter table message_reads enable row level security;
 
 create policy "profiles are readable by any signed-in user"
   on profiles for select
@@ -156,6 +171,22 @@ create policy "important_dates full access for signed-in users"
   using (true)
   with check (true);
 
+create policy "messages readable by signed-in users"
+  on messages for select
+  to authenticated
+  using (true);
+
+create policy "messages insert own"
+  on messages for insert
+  to authenticated
+  with check (sender_id = auth.uid());
+
+create policy "message_reads full access own"
+  on message_reads for all
+  to authenticated
+  using (profile_id = auth.uid())
+  with check (profile_id = auth.uid());
+
 -- ─────────────────────────────────────────────────────────────
 -- Realtime (so the daily list / board update live across the team)
 -- ─────────────────────────────────────────────────────────────
@@ -164,6 +195,7 @@ alter publication supabase_realtime add table tasks;
 alter publication supabase_realtime add table task_assignees;
 alter publication supabase_realtime add table objectives;
 alter publication supabase_realtime add table important_dates;
+alter publication supabase_realtime add table messages;
 
 -- ─────────────────────────────────────────────────────────────
 -- Seed the three starting objectives

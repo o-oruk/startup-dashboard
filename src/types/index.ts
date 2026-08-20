@@ -60,6 +60,13 @@ export const DATE_TYPE_LABEL: Record<DateType, string> = {
   event: 'Event',
 }
 
+export interface ChatMessage {
+  id: string
+  sender_id: string
+  body: string
+  created_at: string
+}
+
 export const WEIGHT_LABELS: Record<TaskWeight, string> = {
   1: 'Small',
   2: 'Medium',
