@@ -5,11 +5,29 @@ import { useProfiles } from '../hooks/useProfiles'
 import { Avatar } from '../components/layout/Avatar'
 
 function formatTimestamp(iso: string) {
-  const date = new Date(iso)
-  const now = new Date()
-  const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-  if (date.toDateString() === now.toDateString()) return time
-  return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} · ${time}`
+  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+}
+
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+}
+
+function dayKey(iso: string) {
+  return startOfDay(new Date(iso)).getTime()
+}
+
+function dateDividerLabel(iso: string) {
+  const day = startOfDay(new Date(iso))
+  const today = startOfDay(new Date())
+  const diffDays = Math.round((today.getTime() - day.getTime()) / 86_400_000)
+
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays > 1 && diffDays < 7) return day.toLocaleDateString('en-US', { weekday: 'long' })
+
+  const dd = String(day.getDate()).padStart(2, '0')
+  const mm = String(day.getMonth() + 1).padStart(2, '0')
+  return `${dd}/${mm}/${day.getFullYear()}`
 }
 
 export function Chat() {
@@ -53,25 +71,35 @@ export function Chat() {
         ) : messages.length === 0 ? (
           <p className="text-sm text-slate-400">No messages yet. Say hi!</p>
         ) : (
-          messages.map((message) => {
+          messages.map((message, index) => {
             const sender = profileFor(message.sender_id)
             const isMine = message.sender_id === profile?.id
+            const showDivider = index === 0 || dayKey(message.created_at) !== dayKey(messages[index - 1].created_at)
             return (
-              <div key={message.id} className={`flex items-start gap-2 ${isMine ? 'flex-row-reverse' : ''}`}>
-                <Avatar profile={sender} size="sm" />
-                <div className={`flex max-w-[70%] flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                  <div className={`flex items-baseline gap-2 ${isMine ? 'flex-row-reverse' : ''}`}>
-                    <span className="text-xs font-semibold" style={{ color: sender?.color ?? '#64748b' }}>
-                      {sender?.name ?? 'Unknown'}
+              <div key={message.id}>
+                {showDivider && (
+                  <div className="my-3 flex items-center justify-center">
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-medium text-slate-500">
+                      {dateDividerLabel(message.created_at)}
                     </span>
-                    <span className="text-[10px] text-slate-400">{formatTimestamp(message.created_at)}</span>
                   </div>
-                  <div
-                    className={`mt-0.5 whitespace-pre-wrap break-words rounded-2xl px-3 py-1.5 text-sm ${
-                      isMine ? 'bg-accent text-white' : 'bg-slate-100 text-slate-800'
-                    }`}
-                  >
-                    {message.body}
+                )}
+                <div className={`flex items-start gap-2 ${isMine ? 'flex-row-reverse' : ''}`}>
+                  <Avatar profile={sender} size="sm" />
+                  <div className={`flex max-w-[70%] flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                    <div className={`flex items-baseline gap-2 ${isMine ? 'flex-row-reverse' : ''}`}>
+                      <span className="text-xs font-semibold" style={{ color: sender?.color ?? '#64748b' }}>
+                        {sender?.name ?? 'Unknown'}
+                      </span>
+                      <span className="text-[10px] text-slate-400">{formatTimestamp(message.created_at)}</span>
+                    </div>
+                    <div
+                      className={`mt-0.5 whitespace-pre-wrap break-words rounded-2xl px-3 py-1.5 text-sm ${
+                        isMine ? 'bg-accent text-white' : 'bg-slate-100 text-slate-800'
+                      }`}
+                    >
+                      {message.body}
+                    </div>
                   </div>
                 </div>
               </div>
