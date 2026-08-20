@@ -17,9 +17,15 @@ export function Daily() {
   const [view, setView] = useState<'team' | 'mine'>('mine')
 
   const today = todayISO()
-  const daily = tasks.filter((t) => t.status === 'daily')
-  const dueToday = daily.filter((t) => t.scheduled_date === today)
-  const overdue = daily.filter((t) => t.scheduled_date && t.scheduled_date < today)
+  const manualDaily = tasks.filter((t) => t.status === 'daily')
+  const autoDue = tasks.filter((t) => t.status === 'backlog' && !!t.due_date && t.due_date <= today)
+  const combined = [...manualDaily, ...autoDue]
+  const referenceDate = (t: Task) => (t.status === 'daily' ? t.scheduled_date : t.due_date)
+  const dueToday = combined.filter((t) => referenceDate(t) === today)
+  const overdue = combined.filter((t) => {
+    const ref = referenceDate(t)
+    return !!ref && ref < today
+  })
 
   const visible =
     view === 'mine'
@@ -73,7 +79,7 @@ export function Daily() {
               objective={objectiveFor(task)}
               today={today}
               onComplete={() => (profile ? completeTask(task.id, profile.id) : Promise.resolve())}
-              onReturnToBacklog={() => returnToBacklog(task.id)}
+              onReturnToBacklog={task.status === 'daily' ? () => returnToBacklog(task.id) : undefined}
             />
           ))}
         </ul>
@@ -100,7 +106,7 @@ export function Daily() {
                       objective={objectiveFor(task)}
                       today={today}
                       onComplete={() => (profile ? completeTask(task.id, profile.id) : Promise.resolve())}
-                      onReturnToBacklog={() => returnToBacklog(task.id)}
+                      onReturnToBacklog={task.status === 'daily' ? () => returnToBacklog(task.id) : undefined}
                     />
                   ))}
                 </ul>

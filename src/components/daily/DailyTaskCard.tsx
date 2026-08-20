@@ -14,7 +14,7 @@ export function DailyTaskCard({
   objective: Objective | undefined
   today: string
   onComplete: () => Promise<void>
-  onReturnToBacklog: () => Promise<void>
+  onReturnToBacklog?: () => Promise<void>
 }) {
   return (
     <li className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
@@ -32,12 +32,21 @@ export function DailyTaskCard({
       {task.due_date && (
         <DueBadge dueDate={task.due_date} today={today} isUrgent={isUrgentDue(task.due_date, false, today)} />
       )}
-      <button
-        onClick={() => void onReturnToBacklog()}
-        className="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:border-slate-400 hover:bg-slate-100 hover:text-slate-800"
-      >
-        Remove from today's list
-      </button>
+      {onReturnToBacklog ? (
+        <button
+          onClick={() => void onReturnToBacklog()}
+          className="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:border-slate-400 hover:bg-slate-100 hover:text-slate-800"
+        >
+          Remove from today's list
+        </button>
+      ) : (
+        <span
+          title="This task showed up automatically because it's due"
+          className="rounded-full bg-accent-light px-2 py-1 text-xs font-medium text-accent"
+        >
+          Due
+        </span>
+      )}
     </li>
   )
 }
