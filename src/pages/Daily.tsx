@@ -14,7 +14,7 @@ export function Daily() {
   const { profiles } = useProfiles()
   const { objectives } = useObjectives()
   const presence = usePresence()
-  const [view, setView] = useState<'team' | 'mine'>('mine')
+  const [view, setView] = useState<'team' | 'mine'>('team')
 
   const today = todayISO()
   const manualDaily = tasks.filter((t) => t.status === 'daily')
@@ -40,8 +40,20 @@ export function Daily() {
     }
   }
 
+  const orderedGroupEntries = [...groups.entries()].sort(([a], [b]) => {
+    if (profile) {
+      if (a === profile.id) return -1
+      if (b === profile.id) return 1
+    }
+    return 0
+  })
+
   function objectiveFor(task: Task) {
     return objectives.find((o) => o.id === task.objective_id)
+  }
+
+  function canRemoveFromToday(task: Task) {
+    return task.status === 'daily' && (!task.due_date || task.due_date > today)
   }
 
   return (
@@ -79,13 +91,13 @@ export function Daily() {
               objective={objectiveFor(task)}
               today={today}
               onComplete={() => (profile ? completeTask(task.id, profile.id) : Promise.resolve())}
-              onReturnToBacklog={task.status === 'daily' ? () => returnToBacklog(task.id) : undefined}
+              onReturnToBacklog={canRemoveFromToday(task) ? () => returnToBacklog(task.id) : undefined}
             />
           ))}
         </ul>
       ) : (
         <div className="space-y-6">
-          {[...groups.entries()].map(([assigneeId, groupTasks]) => {
+          {orderedGroupEntries.map(([assigneeId, groupTasks]) => {
             const groupProfile = profiles.find((p) => p.id === assigneeId)
             return (
               <div key={assigneeId}>
@@ -106,7 +118,7 @@ export function Daily() {
                       objective={objectiveFor(task)}
                       today={today}
                       onComplete={() => (profile ? completeTask(task.id, profile.id) : Promise.resolve())}
-                      onReturnToBacklog={task.status === 'daily' ? () => returnToBacklog(task.id) : undefined}
+                      onReturnToBacklog={canRemoveFromToday(task) ? () => returnToBacklog(task.id) : undefined}
                     />
                   ))}
                 </ul>
