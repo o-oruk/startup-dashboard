@@ -53,11 +53,22 @@ export const LEVEL_LABEL: Record<PointLevel, string> = {
   green: 'Strong day (5+ pts)',
 }
 
+/** "Alice", "Alice & Bob", or "Alice, Bob & Carol" — for crediting multiple task completers. */
+export function joinNames(names: string[]) {
+  if (names.length === 0) return ''
+  if (names.length === 1) return names[0]
+  if (names.length === 2) return `${names[0]} & ${names[1]}`
+  return `${names.slice(0, -1).join(', ')} & ${names[names.length - 1]}`
+}
+
 /** Tasks completed on a given date, optionally restricted to one member. Heaviest first. */
 export function tasksCompletedOn(tasks: Task[], date: string, memberId?: string): Task[] {
   return tasks
     .filter(
-      (t) => t.status === 'done' && t.completed_date === date && (!memberId || t.completed_by === memberId),
+      (t) =>
+        t.status === 'done' &&
+        t.completed_date === date &&
+        (!memberId || t.assignee_ids.includes(memberId)),
     )
     .sort((a, b) => b.weight - a.weight)
 }
@@ -72,11 +83,11 @@ export function teamPointsByDate(tasks: Task[]): Map<string, number> {
   return map
 }
 
-/** Points for one member for each date in range. */
+/** Points for one member for each date in range. Every assignee of a completed task gets full credit. */
 export function memberPointsByDate(tasks: Task[], memberId: string): Map<string, number> {
   const map = new Map<string, number>()
   for (const task of tasks) {
-    if (task.status !== 'done' || !task.completed_date || task.completed_by !== memberId) continue
+    if (task.status !== 'done' || !task.completed_date || !task.assignee_ids.includes(memberId)) continue
     map.set(task.completed_date, (map.get(task.completed_date) ?? 0) + task.weight)
   }
   return map

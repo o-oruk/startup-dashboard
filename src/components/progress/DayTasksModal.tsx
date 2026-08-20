@@ -1,4 +1,5 @@
 import type { Objective, Profile, Task } from '../../types'
+import { joinNames } from '../../lib/progress'
 import { Avatar } from '../layout/Avatar'
 import { WeightBadge } from '../objectives/WeightBadge'
 
@@ -56,17 +57,31 @@ export function DayTasksModal({
           <ul className="space-y-2">
             {tasks.map((task) => {
               const objective = objectives.find((o) => o.id === task.objective_id)
-              const completer = profiles.find((p) => p.id === task.completed_by)
+              const fallback = profiles.find((p) => p.id === task.completed_by)
+              const completers =
+                task.assignee_ids.length > 0
+                  ? profiles.filter((p) => task.assignee_ids.includes(p.id))
+                  : fallback
+                    ? [fallback]
+                    : []
               return (
                 <li
                   key={task.id}
                   className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5"
                 >
-                  {showAssignee && <Avatar profile={completer} size="sm" />}
+                  {showAssignee && (
+                    <div className="flex -space-x-1.5">
+                      {completers.length > 0 ? (
+                        completers.map((p) => <Avatar key={p.id} profile={p} size="sm" />)
+                      ) : (
+                        <Avatar profile={undefined} size="sm" />
+                      )}
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm text-slate-800">{task.title}</p>
                     <p className="truncate text-xs text-slate-400">
-                      {showAssignee && completer ? `${completer.name} · ` : ''}
+                      {showAssignee && completers.length > 0 ? `${joinNames(completers.map((p) => p.name))} · ` : ''}
                       {objective?.title ?? 'No objective'}
                     </p>
                   </div>

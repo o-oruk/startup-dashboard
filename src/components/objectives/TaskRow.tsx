@@ -8,6 +8,7 @@ import { WeightBadge } from './WeightBadge'
 import { WeightPicker } from './WeightPicker'
 import { todayISO } from '../../hooks/useTasks'
 import { isUrgentDue } from '../../lib/dueDate'
+import { joinNames } from '../../lib/progress'
 
 const STATUS_LABEL: Record<Task['status'], string> = {
   backlog: 'Backlog',
@@ -34,12 +35,13 @@ export function TaskRow({
 }) {
   const [editing, setEditing] = useState(false)
   const [title, setTitle] = useState(task.title)
-  const completedBy = profiles.find((p) => p.id === task.completed_by)
   const today = todayISO()
   const isDone = task.status === 'done'
   const isUrgent = isUrgentDue(task.due_date, isDone, today)
   const assignees = profiles.filter((p) => task.assignee_ids.includes(p.id))
   const isAutoToday = task.status === 'backlog' && !!task.due_date && task.due_date <= today
+  const fallbackCompleter = profiles.find((p) => p.id === task.completed_by)
+  const completers = assignees.length > 0 ? assignees : fallbackCompleter ? [fallbackCompleter] : []
 
   async function saveTitle() {
     setEditing(false)
@@ -69,7 +71,8 @@ export function TaskRow({
         )}
         {isDone && (
           <p className="mt-0.5 text-xs text-slate-400">
-            {completedBy && `Completed by ${completedBy.name} on ${task.completed_date}`}
+            {completers.length > 0 &&
+              `Completed by ${joinNames(completers.map((p) => p.name))} on ${task.completed_date}`}
             <button
               onClick={() => void onReopen()}
               className="ml-2 font-medium text-red-500 underline hover:text-red-700"
