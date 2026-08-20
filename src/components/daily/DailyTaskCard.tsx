@@ -7,12 +7,14 @@ export function DailyTaskCard({
   task,
   objective,
   today,
+  canComplete,
   onComplete,
   onReturnToBacklog,
 }: {
   task: Task
   objective: Objective | undefined
   today: string
+  canComplete: boolean
   onComplete: () => Promise<void>
   onReturnToBacklog?: () => Promise<void>
 }) {
@@ -20,8 +22,10 @@ export function DailyTaskCard({
     <li className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
       <input
         type="checkbox"
+        disabled={!canComplete}
         onChange={() => void onComplete()}
-        className="h-4 w-4 shrink-0 rounded border-slate-300 text-accent focus-visible:ring-2 focus-visible:ring-accent"
+        title={canComplete ? undefined : "Only this task's assignee can mark it done"}
+        className="h-4 w-4 shrink-0 rounded border-slate-300 text-accent focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-40"
         aria-label="Mark done"
       />
       <div className="min-w-[140px] flex-1">

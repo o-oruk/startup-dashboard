@@ -72,7 +72,7 @@ export function TaskRow({
             {completedBy && `Completed by ${completedBy.name} on ${task.completed_date}`}
             <button
               onClick={() => void onReopen()}
-              className="ml-2 font-medium text-slate-400 underline hover:text-accent"
+              className="ml-2 font-medium text-red-500 underline hover:text-red-700"
             >
               Undo
             </button>

@@ -56,6 +56,10 @@ export function Daily() {
     return task.status === 'daily' && (!task.due_date || task.due_date > today)
   }
 
+  function canComplete(task: Task) {
+    return task.assignee_ids.length === 0 || (!!profile && task.assignee_ids.includes(profile.id))
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-3">
@@ -90,6 +94,7 @@ export function Daily() {
               task={task}
               objective={objectiveFor(task)}
               today={today}
+              canComplete={canComplete(task)}
               onComplete={() => (profile ? completeTask(task.id, profile.id) : Promise.resolve())}
               onReturnToBacklog={canRemoveFromToday(task) ? () => returnToBacklog(task.id) : undefined}
             />
@@ -117,6 +122,7 @@ export function Daily() {
                       task={task}
                       objective={objectiveFor(task)}
                       today={today}
+                      canComplete={canComplete(task)}
                       onComplete={() => (profile ? completeTask(task.id, profile.id) : Promise.resolve())}
                       onReturnToBacklog={canRemoveFromToday(task) ? () => returnToBacklog(task.id) : undefined}
                     />
