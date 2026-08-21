@@ -4,6 +4,7 @@ import { useObjectives } from '../hooks/useObjectives'
 import { usePresence } from '../hooks/usePresence'
 import { useProfiles } from '../hooks/useProfiles'
 import { useTasks, todayISO } from '../hooks/useTasks'
+import { joinNames } from '../lib/progress'
 import { Avatar } from '../components/layout/Avatar'
 import { DailyTaskCard } from '../components/daily/DailyTaskCard'
 import type { Task } from '../types'
@@ -26,11 +27,13 @@ export function Daily() {
     const ref = referenceDate(t)
     return !!ref && ref < today
   })
+  const completedToday = tasks.filter((t) => t.status === 'done' && t.completed_date === today)
+  const pending = [...overdue, ...dueToday]
 
   const visible =
     view === 'mine'
-      ? [...overdue, ...dueToday].filter((t) => !!profile && t.assignee_ids.includes(profile.id))
-      : [...overdue, ...dueToday]
+      ? [...pending, ...completedToday].filter((t) => !!profile && t.assignee_ids.includes(profile.id))
+      : [...pending, ...completedToday]
 
   const groups = new Map<string, Task[]>()
   for (const task of visible) {
@@ -58,6 +61,12 @@ export function Daily() {
 
   function canComplete(task: Task) {
     return task.assignee_ids.length === 0 || (!!profile && task.assignee_ids.includes(profile.id))
+  }
+
+  function completedByLabel(task: Task) {
+    const names = profiles.filter((p) => task.assignee_ids.includes(p.id)).map((p) => p.name)
+    if (names.length > 0) return joinNames(names)
+    return profiles.find((p) => p.id === task.completed_by)?.name
   }
 
   return (
@@ -95,6 +104,7 @@ export function Daily() {
               objective={objectiveFor(task)}
               today={today}
               canComplete={canComplete(task)}
+              completedByLabel={completedByLabel(task)}
               onComplete={() => (profile ? completeTask(task.id, profile.id) : Promise.resolve())}
               onReturnToBacklog={canRemoveFromToday(task) ? () => returnToBacklog(task.id) : undefined}
             />
@@ -123,6 +133,7 @@ export function Daily() {
                       objective={objectiveFor(task)}
                       today={today}
                       canComplete={canComplete(task)}
+                      completedByLabel={completedByLabel(task)}
                       onComplete={() => (profile ? completeTask(task.id, profile.id) : Promise.resolve())}
                       onReturnToBacklog={canRemoveFromToday(task) ? () => returnToBacklog(task.id) : undefined}
                     />
