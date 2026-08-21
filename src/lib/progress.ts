@@ -49,7 +49,7 @@ export const LEVEL_LABEL: Record<PointLevel, string> = {
   'not-joined': 'Not on the team yet',
   red: 'No execution (0 pts)',
   orange: 'Light day (1-2 pts)',
-  yellow: 'Solid day (3-4 pts)',
+  yellow: 'Moderate day (3-4 pts)',
   green: 'Strong day (5+ pts)',
 }
 
