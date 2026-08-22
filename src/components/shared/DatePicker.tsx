@@ -86,7 +86,7 @@ export function DatePicker({
       {open && pendingDate ? (
         <div className="absolute left-0 top-full z-20 mt-1 w-60 rounded-lg border border-slate-200 bg-white p-3 shadow-lg">
           <p className="text-sm font-semibold text-slate-800">{formatSpelledOutDate(pendingDate)}</p>
-          <p className="mt-0.5 text-xs text-slate-500">{daysUntilLabel(pendingDate, today)}</p>
+          <p className="mt-0.5 text-xs font-medium text-red-500">{daysUntilLabel(pendingDate, today)}</p>
           <div className="mt-3 flex gap-2">
             <button
               type="button"
