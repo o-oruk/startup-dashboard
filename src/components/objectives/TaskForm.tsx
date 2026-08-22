@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { Profile, TaskWeight } from '../../types'
+import { todayISO } from '../../hooks/useTasks'
 import { DatePicker } from '../shared/DatePicker'
 import { AssigneePicker } from './AssigneePicker'
 import { WeightPicker } from './WeightPicker'
@@ -79,7 +80,14 @@ export function TaskForm({
       />
 
       <div className="flex flex-col gap-1">
-        <DatePicker value={dueDate} onChange={setDueDate} placeholder="Deadline" invalid={dueDateMissing} />
+        <DatePicker
+          value={dueDate}
+          onChange={setDueDate}
+          placeholder="Deadline"
+          invalid={dueDateMissing}
+          minDate={todayISO()}
+          confirmSelection
+        />
         {dueDateMissing && <span className="text-xs text-red-500">Pick a deadline</span>}
       </div>
 

@@ -107,6 +107,8 @@ export function TaskRow({
               onChange={(date) => onUpdate({ due_date: date || null })}
               placeholder="Deadline"
               clearable
+              minDate={today}
+              confirmSelection
             />
             {task.due_date && <DueBadge dueDate={task.due_date} today={today} isUrgent={isUrgent} />}
           </>
