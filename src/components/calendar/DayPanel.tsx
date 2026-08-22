@@ -120,6 +120,7 @@ export function DayPanel({
     month: 'long',
     day: 'numeric',
   })
+  const isPastDay = date < toISODate(new Date())
 
   return (
     <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
@@ -143,7 +144,9 @@ export function DayPanel({
             ) : (
               <li
                 key={event.id}
-                className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 py-2 pl-3 pr-3"
+                className={`flex items-center justify-between gap-2 rounded-lg border border-slate-200 py-2 pl-3 pr-3 ${
+                  isPastDay ? 'opacity-50' : ''
+                }`}
                 style={{ borderLeft: `4px solid ${DATE_TYPE_COLOR[event.type]}` }}
               >
                 <div className="flex items-start gap-2">

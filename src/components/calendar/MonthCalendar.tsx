@@ -68,6 +68,7 @@ export function MonthCalendar({
           const inMonth = day.getMonth() === currentMonth
           const isToday = iso === today
           const isSelected = iso === selectedDate
+          const isPast = iso < today
           const dayEvents = eventsByDate.get(iso) ?? []
 
           return (
@@ -97,7 +98,11 @@ export function MonthCalendar({
                     key={event.id}
                     title={event.title}
                     className="truncate rounded px-1 py-0.5 text-[10px] font-medium leading-tight"
-                    style={{ backgroundColor: DATE_TYPE_COLOR[event.type], color: 'white' }}
+                    style={{
+                      backgroundColor: DATE_TYPE_COLOR[event.type],
+                      color: 'white',
+                      opacity: isPast ? 0.45 : 1,
+                    }}
                   >
                     {event.title}
                   </span>
