@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { toISODate } from '../../lib/calendar'
 import { DATE_TYPE_COLOR, DATE_TYPE_LABEL, type DateType } from '../../types'
 import { DatePicker } from '../shared/DatePicker'
 
@@ -55,7 +56,14 @@ export function ImportantDateForm({
         <div className="flex-1">
           <span className="block text-sm font-medium text-slate-700">Date</span>
           <div className="mt-1">
-            <DatePicker value={date} onChange={setDate} placeholder="Pick a date" triggerClassName="w-full py-2" />
+            <DatePicker
+              value={date}
+              onChange={setDate}
+              placeholder="Pick a date"
+              triggerClassName="w-full py-2"
+              minDate={toISODate(new Date())}
+              confirmSelection
+            />
           </div>
         </div>
         <div>

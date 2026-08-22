@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { formatTime, type AgendaEvent } from '../../lib/calendar'
+import { formatTime, toISODate, type AgendaEvent } from '../../lib/calendar'
 import { DATE_TYPE_COLOR, DATE_TYPE_LABEL, type DateType, type ImportantDate } from '../../types'
 import { DatePicker } from '../shared/DatePicker'
 import { AddDateModal } from './AddDateModal'
@@ -45,7 +45,7 @@ function EditDateRow({
           onChange={(e) => setTitle(e.target.value)}
           className="min-w-[120px] flex-1 rounded-md border border-slate-300 px-2 py-1 text-sm focus-visible:ring-2 focus-visible:ring-accent"
         />
-        <DatePicker value={date} onChange={setDate} />
+        <DatePicker value={date} onChange={setDate} minDate={toISODate(new Date())} confirmSelection />
         <input
           type="time"
           value={time}
