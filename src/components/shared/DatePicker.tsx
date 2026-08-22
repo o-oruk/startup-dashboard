@@ -7,12 +7,14 @@ export function DatePicker({
   placeholder = 'Date',
   clearable = false,
   triggerClassName = '',
+  invalid = false,
 }: {
   value: string
   onChange: (date: string) => void
   placeholder?: string
   clearable?: boolean
   triggerClassName?: string
+  invalid?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [viewMonth, setViewMonth] = useState(() =>
@@ -44,7 +46,9 @@ export function DatePicker({
           setViewMonth(startOfMonth(value ? new Date(value + 'T00:00:00') : new Date()))
           setOpen((o) => !o)
         }}
-        className={`flex items-center gap-1.5 rounded-md border border-slate-300 px-2 py-1 text-sm hover:border-accent ${triggerClassName}`}
+        className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-sm ${
+          invalid ? 'border-red-400 hover:border-red-500' : 'border-slate-300 hover:border-accent'
+        } ${triggerClassName}`}
       >
         <span className={label ? 'text-slate-700' : 'text-slate-400'}>{label ?? placeholder}</span>
         <svg viewBox="0 0 12 8" className="ml-auto h-2 w-2.5 shrink-0 text-slate-400" fill="none">

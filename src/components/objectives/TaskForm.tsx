@@ -21,12 +21,18 @@ export function TaskForm({
   const [assigneeIds, setAssigneeIds] = useState<string[]>([])
   const [dueDate, setDueDate] = useState('')
   const [busy, setBusy] = useState(false)
+  const [showErrors, setShowErrors] = useState(false)
 
-  const canSubmit = !!title.trim() && weight !== null && !!dueDate
+  const titleMissing = showErrors && !title.trim()
+  const weightMissing = showErrors && weight === null
+  const dueDateMissing = showErrors && !dueDate
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!canSubmit || weight === null) return
+    if (!title.trim() || weight === null || !dueDate) {
+      setShowErrors(true)
+      return
+    }
     setBusy(true)
     try {
       await onSubmit({ title: title.trim(), weight, assigneeIds, dueDate })
@@ -34,20 +40,36 @@ export function TaskForm({
       setWeight(null)
       setAssigneeIds([])
       setDueDate('')
+      setShowErrors(false)
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-slate-300 p-3">
-      <input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Add a task…"
-        className="min-w-[180px] flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-accent"
-      />
-      <WeightPicker value={weight} onChange={setWeight} />
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-wrap items-start gap-2 rounded-lg border border-dashed border-slate-300 p-3"
+    >
+      <div className="flex min-w-[180px] flex-1 flex-col gap-1">
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Add a task…"
+          className={`w-full rounded-md border px-3 py-1.5 text-sm focus-visible:ring-2 ${
+            titleMissing
+              ? 'border-red-400 focus-visible:ring-red-400'
+              : 'border-slate-300 focus-visible:ring-accent'
+          }`}
+        />
+        {titleMissing && <span className="text-xs text-red-500">Title is required</span>}
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <WeightPicker value={weight} onChange={setWeight} invalid={weightMissing} />
+        {weightMissing && <span className="text-xs text-red-500">Pick a size</span>}
+      </div>
+
       <AssigneePicker
         profiles={profiles}
         selectedIds={assigneeIds}
@@ -55,11 +77,15 @@ export function TaskForm({
           setAssigneeIds((ids) => (assign ? [...ids, profileId] : ids.filter((id) => id !== profileId)))
         }
       />
-      <DatePicker value={dueDate} onChange={setDueDate} placeholder="Deadline" />
+
+      <div className="flex flex-col gap-1">
+        <DatePicker value={dueDate} onChange={setDueDate} placeholder="Deadline" invalid={dueDateMissing} />
+        {dueDateMissing && <span className="text-xs text-red-500">Pick a deadline</span>}
+      </div>
+
       <button
         type="submit"
-        disabled={busy || !canSubmit}
-        title={canSubmit ? undefined : 'Set a deadline and a size'}
+        disabled={busy}
         className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white hover:bg-accent/90 disabled:opacity-50"
       >
         Add task

@@ -20,9 +20,11 @@ function WeightDots({ weight, active }: { weight: TaskWeight; active: boolean })
 export function WeightPicker({
   value,
   onChange,
+  invalid = false,
 }: {
   value: TaskWeight | null
   onChange: (weight: TaskWeight) => void
+  invalid?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -41,7 +43,9 @@ export function WeightPicker({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 rounded-md border border-slate-300 px-2 py-1 text-sm hover:border-accent"
+        className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-sm ${
+          invalid ? 'border-red-400 hover:border-red-500' : 'border-slate-300 hover:border-accent'
+        }`}
       >
         {value === null ? (
           <span className="text-slate-400">Size</span>
